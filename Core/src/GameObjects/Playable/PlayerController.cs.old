@@ -1,0 +1,222 @@
+using CatalysisEngine.Graphics;
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Audio;
+using Microsoft.Xna.Framework.Graphics;
+
+namespace MegamanX.GameObjects
+{
+    public enum PlayerStates
+    {
+        Standing,
+        Stepping,
+        Walking,
+        Jumping,
+        Falling,
+        Landing,
+        Dashing,
+        StoppingDash,
+        Wallsliding,
+        Walljumping,
+        Damaged
+    }
+
+    public class PlayerController
+    {
+        public Sprite NormalSprite;
+
+        public Sprite ShootingSprite;
+
+        public PlayerStates State { get; private set; }
+
+        public bool IsShooting => shootTimer > 0;
+
+        public int ShootingStateDuration = 233;
+
+        #region Sound Effects
+        public SoundEffect JumpSoundEffect;
+        public SoundEffect LandSoundEffect;
+        public SoundEffect DashSoundEffect;
+        public SoundEffect HurtSoundEffect;
+        #endregion
+
+        #region Animation IDs
+        const int ANIM_STAND = 0;
+        const int ANIM_STEP = 1;
+        const int ANIM_WALK = 2;
+        const int ANIM_JUMP = 3;
+        const int ANIM_FALL = 4;
+        const int ANIM_LAND = 5;
+        const int ANIM_DASH = 6;
+        const int ANIM_DASHSTOP = 7;
+        const int ANIM_WALLSLIDE = 8;
+        const int ANIM_WALLJUMP = 9;
+        const int ANIM_HURT = 10;
+        #endregion
+
+        int shootTimer;
+
+        // int timer = 0;
+
+        bool isStanding;
+
+        public void Stand()
+        {
+            isStanding = true;
+            State = PlayerStates.Standing;
+
+            NormalSprite.Play(ANIM_STAND);
+            ShootingSprite.Play(ANIM_STAND);
+        }
+
+        public void Step()
+        {
+            isStanding = false;
+            State = PlayerStates.Stepping;
+
+            NormalSprite.Play(ANIM_STEP);
+            ShootingSprite.Play(ANIM_STEP);
+        }
+
+        public void Walk()
+        {
+            isStanding = false;
+            State = PlayerStates.Walking;
+
+            NormalSprite.Play(ANIM_WALK);
+            ShootingSprite.Play(ANIM_WALK);
+        }
+
+        public void Jump()
+        {
+            if (State != PlayerStates.Walljumping)
+            {
+                JumpSoundEffect?.Play();
+            }
+
+            isStanding = false;
+            State = PlayerStates.Jumping;
+
+            NormalSprite.Play(ANIM_JUMP);
+            ShootingSprite.Play(ANIM_JUMP);
+        }
+
+        public void Fall()
+        {
+            isStanding = false;
+            State = PlayerStates.Falling;
+
+            NormalSprite.Play(ANIM_FALL);
+            ShootingSprite.Play(ANIM_FALL);
+        }
+
+        public void Land()
+        {
+            isStanding = true;
+            State = PlayerStates.Landing;
+
+            NormalSprite.Play(ANIM_LAND);
+            ShootingSprite.Play(ANIM_LAND);
+
+            LandSoundEffect?.Play();
+        }
+
+        public void Dash()
+        {
+            isStanding = false;
+            State = PlayerStates.Dashing;
+
+            NormalSprite.Play(ANIM_DASH);
+            ShootingSprite.Play(ANIM_DASH);
+
+            DashSoundEffect?.Play();
+        }
+
+        public void StopDash()
+        {
+            isStanding = true;
+            State = PlayerStates.StoppingDash;
+
+            NormalSprite.Play(ANIM_DASHSTOP);
+            ShootingSprite.Play(ANIM_DASHSTOP);
+            // NormalSprite.SetNextAnimation(ANIM_STAND);
+            // ShootingSprite.SetNextAnimation(ANIM_STAND);
+        }
+
+        public void StopDashAndWalk()
+        {
+            isStanding = false;
+            State = PlayerStates.StoppingDash;
+
+            NormalSprite.Play(ANIM_DASHSTOP);
+            ShootingSprite.Play(ANIM_DASHSTOP);
+            // NormalSprite.SetNextAnimation(ANIM_WALK);
+            // ShootingSprite.SetNextAnimation(ANIM_WALK);
+        }
+
+        public void Hurt()
+        {
+            isStanding = false;
+            shootTimer = 0;
+            State = PlayerStates.Damaged;
+
+            NormalSprite.Play(ANIM_HURT);
+
+            HurtSoundEffect?.Play();
+        }
+
+        public void Walljump()
+        {
+            isStanding = false;
+            State = PlayerStates.Walljumping;
+
+            NormalSprite.Play(ANIM_WALLJUMP);
+            ShootingSprite.Play(ANIM_WALLJUMP);
+
+            JumpSoundEffect?.Play();
+        }
+
+        public void Wallslide()
+        {
+            isStanding = false;
+            State = PlayerStates.Wallsliding;
+
+            NormalSprite.Play(ANIM_WALLSLIDE);
+            ShootingSprite.Play(ANIM_WALLSLIDE);
+        }
+
+        public void Shoot()
+        {
+            if (isStanding)
+            {
+                ShootingSprite.Play(ANIM_STAND);
+            }
+
+            shootTimer = ShootingStateDuration;
+        }
+
+        public void Update(GameTime gameTime)
+        {
+            if (IsShooting)
+            {
+                shootTimer -= gameTime.ElapsedGameTime.Milliseconds;
+
+                if (shootTimer <= 0 && isStanding)
+                {
+                    NormalSprite.Play(ANIM_STAND);
+                }
+            }
+
+            NormalSprite.Update();
+            ShootingSprite.Update();
+        }
+
+        public void Draw(SpriteBatch spriteBatch, Vector2 position, SpriteEffects effects)
+        {
+            Sprite sprite = IsShooting ? ShootingSprite : NormalSprite;
+
+            sprite.Position = position;
+            sprite.Effects = effects;
+            sprite.Draw(spriteBatch);
+        }
+    }
+}

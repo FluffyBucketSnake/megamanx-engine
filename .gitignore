@@ -1,0 +1,6 @@
+*/bin/**
+*/obj/**
+*/Content/**
+.vs/**
+.vscode/**
+*.code-workspace
