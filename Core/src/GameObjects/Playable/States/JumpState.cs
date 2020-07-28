@@ -5,7 +5,6 @@ namespace MegamanX.GameObjects.Playable.States
 {
     public class JumpState : PlayerState
     {
-        float jumpingSpeed;
         int dashInputTimer = 0;
 
         public JumpState(Player parent, float initalJumpingSpeed) : base(parent)
@@ -15,6 +14,7 @@ namespace MegamanX.GameObjects.Playable.States
 
         public bool IsDashing { get; set; }
         public float InitialJumpingSpeed { get; set; }
+        public float AccumulatedSpeed { get; set; }
 
         public override void OnInputEnter(PlayerInput inputType)
         {
@@ -30,7 +30,7 @@ namespace MegamanX.GameObjects.Playable.States
                     if ((!Parent.IsLeft && Parent.Physics.RightWalljumpSensor) ||
                     (Parent.IsLeft && Parent.Physics.LeftWalljumpSensor))
                     {
-                        Parent.Physics.Speed += new Vector2(0, jumpingSpeed);
+                        Parent.Physics.Speed += new Vector2(0, AccumulatedSpeed);
                         Parent.ChangeState<WalljumpState>();
                     }
                     break;
@@ -43,7 +43,7 @@ namespace MegamanX.GameObjects.Playable.States
         public override void OnStateEnter(StateChangeInfo info)
         {
             Parent.AnimationController.State = PlayerAnimationStates.Jump;
-            jumpingSpeed = InitialJumpingSpeed;
+            AccumulatedSpeed = InitialJumpingSpeed;
             Parent.Physics.Speed -= new Vector2(0, InitialJumpingSpeed);
             Parent.Physics.Body.TileMapCollisionEvent += OnPlayerTilemapCollision;
         }
@@ -58,7 +58,7 @@ namespace MegamanX.GameObjects.Playable.States
             switch (inputType)
             {
                 case PlayerInput.Jump:
-                    Parent.Physics.Speed += new Vector2(0, jumpingSpeed);
+                    Parent.Physics.Speed += new Vector2(0, AccumulatedSpeed);
                     Fall();
                     break;
                 case PlayerInput.Fire:
@@ -89,7 +89,7 @@ namespace MegamanX.GameObjects.Playable.States
             //Calculate the current state of the jumping speed.
             if (Parent.Physics.World != null)
             {
-                jumpingSpeed -= gameTime.ElapsedGameTime.Milliseconds * Parent.Physics.Body.GravityScale *
+                AccumulatedSpeed -= gameTime.ElapsedGameTime.Milliseconds * Parent.Physics.Body.GravityScale *
                 Parent.Map.World.Gravity.Y;
             }
             //Reduce dash command timer.
@@ -99,7 +99,7 @@ namespace MegamanX.GameObjects.Playable.States
             }
 
             //Check if player is now falling.
-            if (jumpingSpeed <= 0)
+            if (AccumulatedSpeed <= 0)
             {
                 Fall();
             }

@@ -111,6 +111,7 @@ namespace MegamanX.GameObjects.Playable.States
                     var jumpState = Parent.GetState<JumpState>();
                     jumpState.IsDashing = IsDashing;
                     Parent.Physics.Speed += new Vector2(0, jumpState.InitialJumpingSpeed);
+                    jumpState.AccumulatedSpeed =  _accSpeed;
                     Parent.ChangeState<JumpState>();
                 }
                 else if (Parent.Physics.CeilingSensor)
