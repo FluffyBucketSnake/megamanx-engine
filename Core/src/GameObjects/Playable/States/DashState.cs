@@ -10,12 +10,15 @@ namespace MegamanX.GameObjects.Playable.States
 
         public DashState(Player parent, int duration) : base(parent)
         {
-            timer = duration;
+            Duration = duration;
         }
+
+        public int Duration { get; set; } 
 
         public override void OnStateEnter(StateChangeInfo info)
         {
             Parent.AnimationController.State = PlayerAnimationStates.Dash;
+            timer = 0;
         }
 
         public override void OnInputEnter(PlayerInput inputType)
@@ -23,6 +26,7 @@ namespace MegamanX.GameObjects.Playable.States
             switch (inputType)
             {
                 case PlayerInput.Jump:
+                    Parent.GetState<JumpState>().IsDashing = true;
                     Parent.ChangeState<JumpState>();
                     break;
                 case PlayerInput.Fire:
@@ -84,7 +88,7 @@ namespace MegamanX.GameObjects.Playable.States
                 Parent.GetState<FallState>().IsDashing = true;
                 Parent.ChangeState<FallState>();
             }
-            else if (timer <= 0)
+            else if (timer > Duration)
             {
                 Stop();
             }

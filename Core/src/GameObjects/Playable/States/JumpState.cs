@@ -6,15 +6,15 @@ namespace MegamanX.GameObjects.Playable.States
     public class JumpState : PlayerState
     {
         float jumpingSpeed;
-
         int dashInputTimer = 0;
-
-        public bool IsDashing { get; set; }
 
         public JumpState(Player parent, float initalJumpingSpeed) : base(parent)
         {
-            jumpingSpeed = initalJumpingSpeed;
+            InitialJumpingSpeed = initalJumpingSpeed;
         }
+
+        public bool IsDashing { get; set; }
+        public float InitialJumpingSpeed { get; set; }
 
         public override void OnInputEnter(PlayerInput inputType)
         {
@@ -43,7 +43,8 @@ namespace MegamanX.GameObjects.Playable.States
         public override void OnStateEnter(StateChangeInfo info)
         {
             Parent.AnimationController.State = PlayerAnimationStates.Jump;
-            Parent.Physics.Speed -= new Vector2(0, jumpingSpeed);
+            jumpingSpeed = InitialJumpingSpeed;
+            Parent.Physics.Speed -= new Vector2(0, InitialJumpingSpeed);
             Parent.Physics.Body.TileMapCollisionEvent += OnPlayerTilemapCollision;
         }
 

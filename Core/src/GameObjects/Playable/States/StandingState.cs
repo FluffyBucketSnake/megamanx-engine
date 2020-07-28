@@ -18,7 +18,7 @@ namespace MegamanX.GameObjects.Playable.States
                 case PlayerInput.Jump:
                     if (Parent.Physics.GroundSensor)
                     {
-                        Parent.GetState<FallState>().IsDashing = false;
+                        Parent.GetState<JumpState>().IsDashing = false;
                         Parent.ChangeState<JumpState>();
                     }
                     break;

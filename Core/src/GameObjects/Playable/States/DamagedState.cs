@@ -8,15 +8,17 @@ namespace MegamanX.GameObjects.Playable.States
 
         public DamagedState(Player parent, int duration) : base(parent)
         {
-            timer = duration;
+            Duration = duration;
         }
 
+        public int Duration { get; set; }
         public Vector2 Knockback { get; set; }
 
         public override void OnStateEnter(StateChangeInfo info)
         {
             Parent.AnimationController.State = PlayerAnimationStates.Hurt;
             Parent.Physics.Speed = new Vector2(0, Knockback.Y);
+            timer = 0;
         }
 
         public override void Update(GameTime gameTime)
@@ -24,9 +26,9 @@ namespace MegamanX.GameObjects.Playable.States
             Parent.Physics.Move(new Vector2(Knockback.X, 0) *
             gameTime.ElapsedGameTime.Milliseconds);
 
-            timer -= gameTime.ElapsedGameTime.Milliseconds;
+            timer += gameTime.ElapsedGameTime.Milliseconds;
 
-            if (timer <= 0)
+            if (timer > Duration)
             {
                 if (Parent.Physics.GroundSensor)
                 {

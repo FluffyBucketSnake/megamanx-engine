@@ -4,20 +4,21 @@ namespace MegamanX.GameObjects.Playable.States
 {
     public class WalljumpState : PlayerState
     {
-        float _jumpingSpeed;
+        float _accSpeed;
         int animationTimer;
         int timer;
 
         public const int DefaultDuration = 112;
 
-        public bool IsDashing { get; set; }
-
         public WalljumpState(Player parent, int duration, float jumpingSpeed) : base(parent)
         {
-            _jumpingSpeed = jumpingSpeed;
-            animationTimer = 66;
-            timer = duration;
+            JumpingSpeed = jumpingSpeed;
+            Duration = duration;
         }
+
+        public bool IsDashing { get; set; }
+        public int Duration { get; set; }
+        public float JumpingSpeed { get; set; }
 
         public override void OnInputEnter(PlayerInput inputType)
         {
@@ -30,11 +31,11 @@ namespace MegamanX.GameObjects.Playable.States
                 }
                 break;
                 case PlayerInput.Jump:
-                if (animationTimer > 0 && ((!Parent.IsLeft && Parent.Physics.RightWalljumpSensor) ||
+                if (animationTimer <= 66 && ((!Parent.IsLeft && Parent.Physics.RightWalljumpSensor) ||
                 (Parent.IsLeft && Parent.Physics.LeftWalljumpSensor)))
                 {
-                    Parent.Physics.Speed += new Vector2(0, _jumpingSpeed);
-                    Parent.ChangeState<WalljumpState>();
+                    Parent.Physics.Speed += new Vector2(0, _accSpeed);
+                    OnStateEnter(null);
                 }
                 break;
                 case PlayerInput.Dash:
@@ -63,6 +64,8 @@ namespace MegamanX.GameObjects.Playable.States
         {
             Parent.AnimationController.State = PlayerAnimationStates.Walljump;
             Parent.Physics.GravityScale = 0;
+            animationTimer = 0;
+            _accSpeed = Parent.Physics.Parameters.JumpSpeed;
         }
 
         public override void OnStateLeave(StateChangeInfo info)
@@ -72,13 +75,13 @@ namespace MegamanX.GameObjects.Playable.States
 
         public override void Update(GameTime gameTime)
         {
-            if (animationTimer > 0)
+            if (animationTimer <= 66)
             {
-                animationTimer -= gameTime.ElapsedGameTime.Milliseconds;
-                if (animationTimer <= 0)
+                animationTimer += gameTime.ElapsedGameTime.Milliseconds;
+                if (animationTimer > 66)
                 {
                     Parent.Physics.GravityScale = 1f;
-                    Parent.Physics.Speed -= new Vector2(0, _jumpingSpeed);
+                    Parent.Physics.Speed -= new Vector2(0, _accSpeed);
                 }
             }
             else
@@ -98,14 +101,16 @@ namespace MegamanX.GameObjects.Playable.States
                     gameTime.ElapsedGameTime.Milliseconds);
                 }
 
-                _jumpingSpeed -= Parent.Map.World.Gravity.Y * 
+                _accSpeed -= Parent.Map.World.Gravity.Y * 
                 gameTime.ElapsedGameTime.Milliseconds;
-                timer -= gameTime.ElapsedGameTime.Milliseconds;
+                timer += gameTime.ElapsedGameTime.Milliseconds;
 
-                if (timer <= 0)
+                if (timer > Duration)
                 {
                     timer = 0;
-                    Parent.Physics.Speed += new Vector2(0, _jumpingSpeed);
+                    var jumpState = Parent.GetState<JumpState>();
+                    jumpState.IsDashing = IsDashing;
+                    Parent.Physics.Speed += new Vector2(0, jumpState.InitialJumpingSpeed);
                     Parent.ChangeState<JumpState>();
                 }
                 else if (Parent.Physics.CeilingSensor)

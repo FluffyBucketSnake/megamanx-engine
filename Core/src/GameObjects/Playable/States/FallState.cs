@@ -50,6 +50,7 @@ namespace MegamanX.GameObjects.Playable.States
 
         public override void OnStateEnter(StateChangeInfo info)
         {
+            dashInputTimer = 0;
             Parent.AnimationController.State = PlayerAnimationStates.Fall;
         }
 
