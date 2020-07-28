@@ -11,9 +11,8 @@ namespace MegamanX.GameObjects.Playable.States
 
         public bool IsDashing { get; set; }
 
-        public JumpState(bool isDashing, float initalJumpingSpeed)
+        public JumpState(Player parent, float initalJumpingSpeed) : base(parent)
         {
-            IsDashing = isDashing;
             jumpingSpeed = initalJumpingSpeed;
         }
 
@@ -32,9 +31,7 @@ namespace MegamanX.GameObjects.Playable.States
                     (Parent.IsLeft && Parent.Physics.LeftWalljumpSensor))
                     {
                         Parent.Physics.Speed += new Vector2(0, jumpingSpeed);
-                        Parent.CurrentState = new WalljumpState(dashInputTimer > 0,
-                        WalljumpState.DefaultDuration,
-                        Parent.Physics.Parameters.JumpSpeed);
+                        Parent.ChangeState<WalljumpState>();
                     }
                     break;
                 case PlayerInput.Dash:
@@ -61,7 +58,7 @@ namespace MegamanX.GameObjects.Playable.States
             {
                 case PlayerInput.Jump:
                     Parent.Physics.Speed += new Vector2(0, jumpingSpeed);
-                    Parent.CurrentState = new FallState(IsDashing);
+                    Fall();
                     break;
                 case PlayerInput.Fire:
                     if ((Parent.CurrentWeapon?.ReleaseCharge()).GetValueOrDefault())
@@ -103,15 +100,21 @@ namespace MegamanX.GameObjects.Playable.States
             //Check if player is now falling.
             if (jumpingSpeed <= 0)
             {
-                Parent.CurrentState = new FallState(IsDashing);
+                Fall();
             }
+        }
+
+        private void Fall()
+        {
+            Parent.GetState<FallState>().IsDashing = IsDashing;
+            Parent.ChangeState<FallState>();
         }
 
         private void OnPlayerTilemapCollision(TileMapCollisionInfo info)
         {
             if (info.Penetration.Y < 0)
             {
-                Parent.CurrentState = new FallState(IsDashing);
+                Fall();
             }
         }
 
@@ -119,7 +122,7 @@ namespace MegamanX.GameObjects.Playable.States
         {
             if (info.Penetration.Y < 0)
             {
-                Parent.CurrentState = new FallState(IsDashing);
+                Fall();
             }
         }
     }

@@ -4,6 +4,8 @@ namespace MegamanX.GameObjects.Playable.States
 {
     public class StandingState : PlayerState
     {
+        public StandingState(Player parent) : base(parent) {}
+
         public override void OnStateEnter(StateChangeInfo info)
         {
             Parent.AnimationController.State = PlayerAnimationStates.Idle;
@@ -16,8 +18,8 @@ namespace MegamanX.GameObjects.Playable.States
                 case PlayerInput.Jump:
                     if (Parent.Physics.GroundSensor)
                     {
-                        Parent.CurrentState = new JumpState(false, 
-                        Parent.Physics.Parameters.JumpSpeed);
+                        Parent.GetState<FallState>().IsDashing = false;
+                        Parent.ChangeState<JumpState>();
                     }
                     break;
                 case PlayerInput.Fire:
@@ -27,7 +29,7 @@ namespace MegamanX.GameObjects.Playable.States
                     }
                     break;
                 case PlayerInput.Dash:
-                    Parent.CurrentState = new DashState(DashState.DefaultDuration);
+                    Parent.ChangeState<DashState>();
                     break;
             }
         }
@@ -50,13 +52,14 @@ namespace MegamanX.GameObjects.Playable.States
             //Check if walking.
             if (Parent.CurrentInput.IsMoving)
             {
-                Parent.CurrentState = new WalkingState();
+                Parent.ChangeState<WalkingState>();
             }
 
             //Check if falling.
             if (!Parent.Physics.GroundSensor)
             {
-                Parent.CurrentState = new FallState(false);
+                Parent.GetState<FallState>().IsDashing = false;
+                Parent.ChangeState<FallState>();
             }
         }
     }

@@ -1,3 +1,4 @@
+using System;
 using MegamanX.GameObjects.Playable;
 using Microsoft.Xna.Framework;
 
@@ -18,7 +19,12 @@ namespace MegamanX.GameObjects.Playable.States
 
     public abstract class PlayerState
     {
-        public Player Parent { get; internal set; }
+        public PlayerState(Player parent)
+        {
+            Parent = parent ?? throw new ArgumentNullException(nameof(parent));
+        }
+
+        public Player Parent { get; private set; }
 
         public virtual void OnInputEnter(PlayerInput inputType) {}
 

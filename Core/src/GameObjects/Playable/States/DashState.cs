@@ -8,7 +8,7 @@ namespace MegamanX.GameObjects.Playable.States
 
         int timer;
 
-        public DashState(int duration)
+        public DashState(Player parent, int duration) : base(parent)
         {
             timer = duration;
         }
@@ -23,8 +23,7 @@ namespace MegamanX.GameObjects.Playable.States
             switch (inputType)
             {
                 case PlayerInput.Jump:
-                    Parent.CurrentState = new JumpState(true,
-                Parent.Physics.Parameters.JumpSpeed);
+                    Parent.ChangeState<JumpState>();
                     break;
                 case PlayerInput.Fire:
                     if ((Parent.CurrentWeapon?.Fire()).GetValueOrDefault())
@@ -82,7 +81,8 @@ namespace MegamanX.GameObjects.Playable.States
             //Check if the player is on the ground and if the timer ran out.
             if (!Parent.Physics.GroundSensor)
             {
-                Parent.CurrentState = new FallState(false);
+                Parent.GetState<FallState>().IsDashing = true;
+                Parent.ChangeState<FallState>();
             }
             else if (timer <= 0)
             {
@@ -94,11 +94,11 @@ namespace MegamanX.GameObjects.Playable.States
         {
             if (Parent.CurrentInput.IsMoving)
             {
-                Parent.CurrentState = new WalkingState();
+                Parent.ChangeState<WalkingState>();
             }
             else
             {
-                Parent.CurrentState = new StandingState();
+                Parent.ChangeState<StandingState>();
             }
         }
     }

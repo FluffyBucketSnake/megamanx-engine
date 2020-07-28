@@ -12,9 +12,8 @@ namespace MegamanX.GameObjects.Playable.States
 
         public bool IsDashing { get; set; }
 
-        public WalljumpState(bool isDashing, int duration, float jumpingSpeed)
+        public WalljumpState(Player parent, int duration, float jumpingSpeed) : base(parent)
         {
-            IsDashing = isDashing;
             _jumpingSpeed = jumpingSpeed;
             animationTimer = 66;
             timer = duration;
@@ -35,9 +34,7 @@ namespace MegamanX.GameObjects.Playable.States
                 (Parent.IsLeft && Parent.Physics.LeftWalljumpSensor)))
                 {
                     Parent.Physics.Speed += new Vector2(0, _jumpingSpeed);
-                    Parent.CurrentState = new WalljumpState(false,
-                    WalljumpState.DefaultDuration,
-                    Parent.Physics.Parameters.JumpSpeed);
+                    Parent.ChangeState<WalljumpState>();
                 }
                 break;
                 case PlayerInput.Dash:
@@ -109,11 +106,12 @@ namespace MegamanX.GameObjects.Playable.States
                 {
                     timer = 0;
                     Parent.Physics.Speed += new Vector2(0, _jumpingSpeed);
-                    Parent.CurrentState = new JumpState(IsDashing,_jumpingSpeed);
+                    Parent.ChangeState<JumpState>();
                 }
                 else if (Parent.Physics.CeilingSensor)
                 {
-                    Parent.CurrentState = new FallState(IsDashing);
+                    Parent.GetState<FallState>().IsDashing = IsDashing;
+                    Parent.ChangeState<FallState>();
                 }
             }
         }

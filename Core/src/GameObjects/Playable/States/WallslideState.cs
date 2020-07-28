@@ -6,6 +6,8 @@ namespace MegamanX.GameObjects.Playable.States
     {
         int dashInputTimer = 0;
 
+        public WallslideState(Player parent) : base(parent) {}
+
         public override void OnStateEnter(StateChangeInfo info)
         {
             Parent.AnimationController.State = PlayerAnimationStates.Wallslide;
@@ -26,13 +28,15 @@ namespace MegamanX.GameObjects.Playable.States
                 case PlayerInput.Left:
                 if (Parent.IsLeft)
                 {
-                    Parent.CurrentState = new FallState(false);
+                    Parent.GetState<FallState>().IsDashing = false;
+                    Parent.ChangeState<FallState>();
                 }
                 break;
                 case PlayerInput.Right:
                 if (!Parent.IsLeft)
                 {
-                    Parent.CurrentState = new FallState(false);
+                    Parent.GetState<FallState>().IsDashing = false;
+                    Parent.ChangeState<FallState>();
                 }
                 break;
                 case PlayerInput.Jump:
@@ -40,9 +44,7 @@ namespace MegamanX.GameObjects.Playable.States
                 (!Parent.IsLeft && Parent.Physics.LeftWalljumpSensor))
                 {
                     Parent.IsLeft = !Parent.IsLeft;
-                    Parent.CurrentState = new WalljumpState(dashInputTimer > 0, 
-                    WalljumpState.DefaultDuration, 
-                    Parent.Physics.Parameters.JumpSpeed);
+                    Parent.ChangeState<WalljumpState>();
                 }
                 break;
                 case PlayerInput.Fire:
@@ -64,13 +66,15 @@ namespace MegamanX.GameObjects.Playable.States
                 case PlayerInput.Left:
                 if (!Parent.IsLeft)
                 {
-                    Parent.CurrentState = new FallState(false);
+                    Parent.GetState<FallState>().IsDashing = false;
+                    Parent.ChangeState<FallState>();
                 }
                 break;
                 case PlayerInput.Right:
                 if (Parent.IsLeft)
                 {
-                    Parent.CurrentState = new FallState(false);
+                    Parent.GetState<FallState>().IsDashing = false;
+                    Parent.ChangeState<FallState>();
                 }
                 break;
                 case PlayerInput.Fire:
@@ -98,12 +102,12 @@ namespace MegamanX.GameObjects.Playable.States
             if ((Parent.IsLeft && !Parent.Physics.RightWallSensor) || 
             (!Parent.IsLeft && !Parent.Physics.LeftWallSensor))
             {
-                Parent.CurrentState = new FallState(false);
+                Parent.ChangeState<FallState>();
             }
             else if (Parent.Physics.GroundSensor)
             {
                 Parent.IsLeft = !Parent.IsLeft;
-                Parent.CurrentState = new StandingState();
+                Parent.ChangeState<StandingState>();
             }
         }
     }

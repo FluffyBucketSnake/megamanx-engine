@@ -6,12 +6,9 @@ namespace MegamanX.GameObjects.Playable.States
     {
         int dashInputTimer = 0;
 
-        public bool IsDashing { get; set; }
+        public FallState(Player parent) : base(parent) {}
 
-        public FallState(bool isDashing)
-        {
-            IsDashing = isDashing;
-        }
+        public bool IsDashing { get; set; }
 
         public override void OnInputEnter(PlayerInput inputType)
         {
@@ -29,9 +26,7 @@ namespace MegamanX.GameObjects.Playable.States
                     {
                         Parent.Physics.Speed = new Vector2(Parent.Physics.Speed.X, 0);
 
-                        Parent.CurrentState = new WalljumpState(dashInputTimer > 0,
-                        WalljumpState.DefaultDuration,
-                        Parent.Physics.Parameters.JumpSpeed);
+                        Parent.ChangeState<WallslideState>();
                     }
                     break;
                 case PlayerInput.Dash:
@@ -88,17 +83,17 @@ namespace MegamanX.GameObjects.Playable.States
                 //Play landing animation.
                 if (Parent.CurrentInput.IsMoving)
                 {
-                    Parent.CurrentState = new WalkingState();
+                    Parent.ChangeState<WalkingState>();
                 }
                 else
                 {
-                    Parent.CurrentState = new StandingState();
+                    Parent.ChangeState<StandingState>();
                 }
             }
             else if ((Parent.Physics.LeftWallSensor && Parent.CurrentInput.IsMovingLeft) ||
             (Parent.Physics.RightWallSensor && Parent.CurrentInput.IsMovingRight))
             {
-                Parent.CurrentState = new WallslideState();
+                Parent.ChangeState<WallslideState>();
             }
         }
     }

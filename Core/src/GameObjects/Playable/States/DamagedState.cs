@@ -5,23 +5,23 @@ namespace MegamanX.GameObjects.Playable.States
     public class DamagedState : PlayerState
     {
         int timer;
-        Vector2 _knockback;
 
-        public DamagedState(Vector2 knockback, int duration)
+        public DamagedState(Player parent, int duration) : base(parent)
         {
-            _knockback = knockback;
             timer = duration;
         }
+
+        public Vector2 Knockback { get; set; }
 
         public override void OnStateEnter(StateChangeInfo info)
         {
             Parent.AnimationController.State = PlayerAnimationStates.Hurt;
-            Parent.Physics.Speed = new Vector2(0, _knockback.Y);
+            Parent.Physics.Speed = new Vector2(0, Knockback.Y);
         }
 
         public override void Update(GameTime gameTime)
         {
-            Parent.Physics.Move(new Vector2(_knockback.X, 0) *
+            Parent.Physics.Move(new Vector2(Knockback.X, 0) *
             gameTime.ElapsedGameTime.Milliseconds);
 
             timer -= gameTime.ElapsedGameTime.Milliseconds;
@@ -32,16 +32,17 @@ namespace MegamanX.GameObjects.Playable.States
                 {
                     if (Parent.CurrentInput.IsMoving)
                     {
-                        Parent.CurrentState = new WalkingState();
+                        Parent.ChangeState<WalkingState>();
                     }
                     else
                     {
-                        Parent.CurrentState = new StandingState();
+                        Parent.ChangeState<StandingState>();
                     }
                 }
                 else
                 {
-                    Parent.CurrentState = new FallState(false);
+                    Parent.GetState<FallState>().IsDashing = false;
+                    Parent.ChangeState<FallState>();
                 }
             }
         }

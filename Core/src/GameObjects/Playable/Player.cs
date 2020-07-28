@@ -8,6 +8,8 @@ using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using System.Collections.Generic;
+using System;
 
 namespace MegamanX.GameObjects.Playable
 {
@@ -16,11 +18,14 @@ namespace MegamanX.GameObjects.Playable
         private PlayerState currentState;
         private PlayerWeapon currentWeapon;
 
+
         public SoundEffect JumpSoundEffect;
         public SoundEffect LandSoundEffect;
         public SoundEffect DashSoundEffect;
         public SoundEffect HurtSoundEffect;
+
         IKeyboardDevice keyboard;
+        Dictionary<Type, PlayerState> _states = new Dictionary<Type, PlayerState>();
 
         public Player()
         {
@@ -30,8 +35,7 @@ namespace MegamanX.GameObjects.Playable
             Physics = new PlayerPhysics(this);
 
             //Setup state machine.
-            currentState = new StandingState();
-            currentState.Parent = this;
+            RegisterDefaultStates();
 
             //Setup default buster.
             CurrentWeapon = new PlayerWeapon();
@@ -50,12 +54,12 @@ namespace MegamanX.GameObjects.Playable
         public PlayerState CurrentState
         {
             get => currentState;
-            set
+            private set
             {
                 if (value != currentState)
                 {
-                    States.PlayerState oldState = currentState;
-                    States.PlayerState newState = value;
+                    PlayerState oldState = currentState;
+                    PlayerState newState = value;
 
                     if (currentState != null)
                     {
@@ -63,8 +67,6 @@ namespace MegamanX.GameObjects.Playable
                     }
 
                     currentState = newState;
-
-                    newState.Parent = this;
                     newState.OnStateEnter(new StateChangeInfo(oldState, newState));
                 }
             }
@@ -164,6 +166,9 @@ namespace MegamanX.GameObjects.Playable
             //Create main player controller.
             AnimationController = new PlayerAnimationController(this);
             AnimationController.State = PlayerAnimationStates.Idle;
+
+            // Set the standing state.
+            ChangeState<StandingState>();
         }
 
         private void BuildPlayerSprites(ContentManager content)
@@ -406,6 +411,45 @@ namespace MegamanX.GameObjects.Playable
             Sprite.Draw(spriteBatch);
         }
 
+        public void RegisterState<T>(PlayerState state) where T : PlayerState
+        {
+            RegisterState(typeof(T), state);
+        }
+
+        public void RegisterState(Type type, PlayerState state)
+        {
+            if (_states.ContainsKey(type))
+            {
+                throw new ArgumentException("The state is already registered.");
+            }
+            else if (!typeof(PlayerState).IsAssignableFrom(type))
+            {
+                throw new ArgumentException($"The state object is not a valid {typeof(PlayerState)}");
+            }
+
+            _states.Add(type, state);
+        }
+
+        public PlayerState GetState(Type type)
+        {
+            return _states[type];
+        }
+
+        public T GetState<T>() where T : PlayerState
+        {
+            return (T)GetState(typeof(T));
+        }
+
+        public void ChangeState(Type type)
+        {
+            CurrentState = GetState(type);
+        }
+
+        public void ChangeState<T>() where T : PlayerState
+        {
+            ChangeState(typeof(T));
+        }
+
         protected override void OnCreation(object sender)
         {
             base.OnCreation(sender);
@@ -435,21 +479,41 @@ namespace MegamanX.GameObjects.Playable
                 if ((info.Direction & Direction2D.Left) != 0)
                 {
                     IsLeft = true;
-                    CurrentState = new DamagedState(Physics.Parameters.LeftKnockbackSpeed,
-                        533);
+                    GetState<DamagedState>().Knockback = Physics.Parameters.LeftKnockbackSpeed;
+                    ChangeState<DamagedState>();
                 }
                 else if ((info.Direction & Direction2D.Right) != 0)
                 {
                     IsLeft = false;
-                    CurrentState = new DamagedState(Physics.Parameters.RightKnockbackSpeed,
-                        533);
+                    GetState<DamagedState>().Knockback = Physics.Parameters.RightKnockbackSpeed;
+                    ChangeState<DamagedState>();
                 }
                 else
                 {
-                    CurrentState = new DamagedState(Physics.Parameters.CenterKnockbackSpeed,
-                        533);
+                    GetState<DamagedState>().Knockback = Physics.Parameters.CenterKnockbackSpeed;
+                    ChangeState<DamagedState>();
                 }
             }
+        }
+
+        private void RegisterDefaultStates()
+        {
+            // Idle
+            RegisterState<StandingState>(new StandingState(this));
+            // Walk
+            RegisterState<WalkingState>(new WalkingState(this));
+            // Dash
+            RegisterState<DashState>(new DashState(this, DashState.DefaultDuration));
+            // Jump
+            RegisterState<JumpState>(new JumpState(this, Physics.Parameters.JumpSpeed));
+            // Fall
+            RegisterState<FallState>(new FallState(this));
+            // Walljump
+            RegisterState<WalljumpState>(new WalljumpState(this, WalljumpState.DefaultDuration, Physics.Parameters.JumpSpeed));
+            // Wallslide
+            RegisterState<WallslideState>(new WallslideState(this));
+            // Damage
+            RegisterState<DamagedState>(new DamagedState(this, 533));
         }
     }
 }
