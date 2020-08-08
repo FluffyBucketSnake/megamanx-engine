@@ -8,15 +8,15 @@ namespace MegamanX.GameObjects
     {
         private ICollection<GameObject> internalCollection;
 
-        public Map Level { get; private set; }
+        public GameWorld World { get; private set; }
 
         public int Count => internalCollection.Count;
 
         public bool IsReadOnly => internalCollection.IsReadOnly;
 
-        public GameObjectCollection(Map level)
+        public GameObjectCollection(GameWorld level)
         {
-            Level = level;
+            World = level;
             internalCollection = new List<GameObject>();
         }
 
@@ -24,7 +24,7 @@ namespace MegamanX.GameObjects
         {
             if (gameObject.Map == null)
             {
-                gameObject.Map = Level;
+                gameObject.Map = World;
             }
             else
             {

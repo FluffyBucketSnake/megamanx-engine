@@ -14,7 +14,7 @@ namespace MegamanX.GameStates
         public GraphicsDevice GraphicsDevice { get; }
         public ContentManager Content { get; }
         public string MapFilePath { get; private set;}
-        public Map CurrentMap { get; private set; }
+        public GameWorld GameWorld { get; private set; }
 
         public PlayState(GraphicsDevice graphicsDevice, ContentManager content)
         {
@@ -39,20 +39,20 @@ namespace MegamanX.GameStates
             
             //Load level.
             MapFilePath = path;
-            CurrentMap = MapLoader.LoadFromTMX(MapFilePath, Content, Content.ServiceProvider);
+            GameWorld = MapLoader.LoadFromTMX(MapFilePath, Content, Content.ServiceProvider);
 
             //Load entities content.
-            foreach (var entity in CurrentMap.Objects)
+            foreach (var entity in GameWorld.Objects)
             {
                 entity.LoadContent(Content);
             }
 
             //Change music.
             MediaPlayer.Stop();
-            if (CurrentMap.Music != null)
+            if (GameWorld.Music != null)
             {
                 MediaPlayer.IsRepeating = true;
-                MediaPlayer.Play(CurrentMap.Music);
+                MediaPlayer.Play(GameWorld.Music);
             }
         }
 
@@ -63,31 +63,31 @@ namespace MegamanX.GameStates
                 return;
             }
 
-            CurrentMap = MapLoader.LoadFromTMX(MapFilePath, Content, Content.ServiceProvider);
+            GameWorld = MapLoader.LoadFromTMX(MapFilePath, Content, Content.ServiceProvider);
 
             //Load entities content.
-            foreach (var entity in CurrentMap.Objects)
+            foreach (var entity in GameWorld.Objects)
             {
                 entity.LoadContent(Content);
             }
 
             //Change music.
             MediaPlayer.Stop();
-            if (CurrentMap.Music != null)
+            if (GameWorld.Music != null)
             {
                 MediaPlayer.IsRepeating = true;
-                MediaPlayer.Play(CurrentMap.Music);
+                MediaPlayer.Play(GameWorld.Music);
             }
         }
 
         public override void Update(GameTime gameTime)
         {
-            CurrentMap?.Update(gameTime);
+            GameWorld?.Update(gameTime);
         }
 
         public override void Draw(GameTime gameTime)
         {
-            CurrentMap?.Draw(gameTime, spriteBatch);
+            GameWorld?.Draw(gameTime, spriteBatch);
         }
     }
 }

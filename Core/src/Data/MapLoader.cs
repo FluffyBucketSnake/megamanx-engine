@@ -17,7 +17,7 @@ namespace MegamanX.Data
 {
     public static class MapLoader
     {
-        public static Map LoadFromTMX(string filename, ContentManager content, IServiceProvider services)
+        public static GameWorld LoadFromTMX(string filename, ContentManager content, IServiceProvider services)
         {
             filename = Path.GetFullPath(filename);
             if (!File.Exists(filename))
@@ -25,7 +25,7 @@ namespace MegamanX.Data
                 throw new FileNotFoundException($"Couldn't find the '{filename}' file.");
             }
 
-            Map map = new Map();
+            GameWorld map = new GameWorld();
 
             //Open document.
             var xDocument = XDocument.Load(filename);
@@ -53,10 +53,10 @@ namespace MegamanX.Data
             return map;
         }
 
-        private static void ReadProperties(Map map, XElement xMap, ContentManager content)
+        private static void ReadProperties(GameWorld map, XElement xMap, ContentManager content)
         {
-            map.Width = XParser.ParseInt(xMap, "width") * Tile.Width;
-            map.Height = XParser.ParseInt(xMap, "height") * Tile.Height;
+            int width = XParser.ParseInt(xMap, "width") * Tile.Width;
+            int height = XParser.ParseInt(xMap, "height") * Tile.Height;
 
             var properties = xMap.Element("properties");
             if (properties != null)

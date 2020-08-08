@@ -10,26 +10,26 @@ namespace MegamanX.GameObjects
 
     public abstract class GameObject
     {
-        private Map map;
+        private GameWorld world;
 
         private Vector2 _position;
 
         public string Name { get; set; }
 
-        public Map Map
+        public GameWorld Map
         {
-            get => map;
+            get => world;
             internal set
             {
                 if (value != null)
                 {
-                    map = value;
+                    world = value;
                     OnCreation(null);
                 }
                 else
                 {
                     OnDestruction(null);
-                    map = null;
+                    world = null;
                 }
             }
         }
