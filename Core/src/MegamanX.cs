@@ -1,9 +1,9 @@
-﻿using MegamanX.Input.Keyboard;
-using MegamanX.Data;
+﻿using MegamanX.Data;
 using MegamanX.GameObjects;
 using MegamanX.GameObjects.Debug;
 using MegamanX.GameObjects.Playable;
 using MegamanX.GameStates;
+using MegamanX.Input.Keyboard;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -32,7 +32,7 @@ namespace MegamanX
             //Initialize keyboard input.
             keyboard = new KeyboardComponent(this);
             Components.Add(keyboard);
-            
+
             //Call base class's initialization.
             base.Initialize();
         }
@@ -44,7 +44,8 @@ namespace MegamanX
             playState.Initialize();
             playState.LoadLevel("Maps/debug0.tmx");
 
-            keyboard.KeyDown += e => {
+            keyboard.KeyDown += e =>
+            {
                 if (e.Key == Keys.F2)
                 {
                     playState.ReloadLevel();

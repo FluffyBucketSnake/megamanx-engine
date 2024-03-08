@@ -173,7 +173,7 @@ namespace MegamanX.GameObjects.Playable
 
         private void BuildPlayerSprites(ContentManager content)
         {
-            var playerSheet = new SpriteSheet(content.Load<Texture2D>("textures/player-x"), 64);
+            var playerSheet = new SpriteSheet(content.Load<Texture2D>("textures/player-x"), 76);
             playerSheet.Origin = new Vector2(16, 16);
             
             // Standing
@@ -275,6 +275,24 @@ namespace MegamanX.GameObjects.Playable
             playerSheet.Frames[61] = new SpriteFrame(256, 370, 32, 48, new Thickness(-10, -3, -4, 3));
             playerSheet.Frames[62] = new SpriteFrame(293, 380, 34, 34, new Thickness(  0, -2,  0, 0));
             playerSheet.Frames[63] = new SpriteFrame(332, 379, 29, 35, new Thickness( -1, -2,  0, 5));
+
+            // Teleporting
+            // TODO: Organize margins
+            // TODO: Reorganize frames.
+            playerSheet.Frames[64] = new SpriteFrame(4, 14, 8, 48);
+            playerSheet.Frames[65] = new SpriteFrame(18, 33, 22, 29);
+            playerSheet.Frames[66] = new SpriteFrame(45, 20, 30, 42);
+            playerSheet.Frames[67] = new SpriteFrame(83, 23, 30, 39);
+            playerSheet.Frames[68] = new SpriteFrame(119, 26, 30, 36);
+            playerSheet.Frames[69] = new SpriteFrame(155, 28, 30, 34);
+            playerSheet.Frames[70] = new SpriteFrame(190, 30, 30, 32);
+
+            // Winning stance
+            playerSheet.Frames[71] = new SpriteFrame(220, 255, 28, 45);
+            playerSheet.Frames[72] = new SpriteFrame(258, 255, 28, 45);
+            playerSheet.Frames[73] = new SpriteFrame(296, 252, 34, 48);
+            playerSheet.Frames[74] = new SpriteFrame(334, 255, 29, 45);
+            playerSheet.Frames[75] = new SpriteFrame(372, 225, 31, 45);
 
             // Animations
             playerSheet.Animations.Add(new SpriteAnimation("idle", 0) { IsLooping = true });
