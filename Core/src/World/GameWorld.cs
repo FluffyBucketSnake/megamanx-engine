@@ -1,8 +1,8 @@
 using System.Collections.Generic;
 using System.Linq;
-using MegamanX.Graphics;
 using MegamanX.GameObjects;
 using MegamanX.GameObjects.Playable;
+using MegamanX.Graphics;
 using MegamanX.Physics;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -43,7 +43,7 @@ namespace MegamanX.World
         public void Update(GameTime gameTime)
         {
             //Cache the state.
-            ICollection<GameObject> currentFrame = Objects.ToList();
+            ICollection<LegacyGameObject> currentFrame = Objects.ToList();
 
             //Update level physics.
             World.Update(gameTime);
@@ -126,7 +126,7 @@ namespace MegamanX.World
             {
                 testedTilesCoordinates.UnionWith(World.Tiles.SelectAll(body.WorldBounds));
 
-                spriteBatch.Draw(whitePixel, body.WorldBounds, new Color(Color.Blue,0.5f));
+                spriteBatch.Draw(whitePixel, body.WorldBounds, new Color(Color.Blue, 0.5f));
 
                 foreach (var sensor in body.Sensors)
                 {
@@ -155,7 +155,7 @@ namespace MegamanX.World
                 int width = Tile.Width;
                 int height = Tile.Height;
 
-                spriteBatch.Draw(whitePixel, 
+                spriteBatch.Draw(whitePixel,
                 new Rectangle(x + 1, y + 1, width - 2, height - 2),
                 new Color(Color.Gray, 0.125f));
             }

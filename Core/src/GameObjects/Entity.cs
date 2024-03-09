@@ -16,7 +16,7 @@ namespace MegamanX.GameObjects
         }
     }
 
-    public abstract class Entity : GameObject
+    public abstract class Entity : LegacyGameObject
     {
         private int health = 1;
 

@@ -1,12 +1,12 @@
-using MegamanX.World;
 using System.Collections;
 using System.Collections.Generic;
+using MegamanX.World;
 
 namespace MegamanX.GameObjects
 {
-    public class GameObjectCollection : ICollection<GameObject>
+    public class GameObjectCollection : ICollection<LegacyGameObject>
     {
-        private ICollection<GameObject> internalCollection;
+        private ICollection<LegacyGameObject> internalCollection;
 
         public GameWorld World { get; private set; }
 
@@ -17,10 +17,10 @@ namespace MegamanX.GameObjects
         public GameObjectCollection(GameWorld level)
         {
             World = level;
-            internalCollection = new List<GameObject>();
+            internalCollection = new List<LegacyGameObject>();
         }
 
-        public void Add(GameObject gameObject)
+        public void Add(LegacyGameObject gameObject)
         {
             if (gameObject.Map == null)
             {
@@ -42,22 +42,22 @@ namespace MegamanX.GameObjects
             internalCollection.Clear();
         }
 
-        public bool Contains(GameObject item)
+        public bool Contains(LegacyGameObject item)
         {
             return internalCollection.Contains(item);
         }
 
-        public void CopyTo(GameObject[] array, int arrayIndex)
+        public void CopyTo(LegacyGameObject[] array, int arrayIndex)
         {
-            internalCollection.CopyTo(array,arrayIndex);
+            internalCollection.CopyTo(array, arrayIndex);
         }
 
-        public IEnumerator<GameObject> GetEnumerator()
+        public IEnumerator<LegacyGameObject> GetEnumerator()
         {
             return internalCollection.GetEnumerator();
         }
 
-        public bool Remove(GameObject item)
+        public bool Remove(LegacyGameObject item)
         {
             if (internalCollection.Remove(item))
             {

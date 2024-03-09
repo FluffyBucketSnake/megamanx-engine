@@ -4,9 +4,9 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Xml.Linq;
-using MegamanX.Input.Keyboard;
 using MegamanX.GameObjects;
 using MegamanX.GameObjects.Playable;
+using MegamanX.Input.Keyboard;
 using MegamanX.World;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
@@ -138,10 +138,10 @@ namespace MegamanX.Data
             return result;
         }
 
-        private static GameObject BuildGameObject(XElement sourceElement, IServiceProvider services)
+        private static LegacyGameObject BuildGameObject(XElement sourceElement, IServiceProvider services)
         {
             string typeName = XParser.GetString(sourceElement, "type");
-            GameObject gameObject;
+            LegacyGameObject gameObject;
 
             switch (typeName)
             {
@@ -154,7 +154,7 @@ namespace MegamanX.Data
                     GameObjectSpawner spawner = new GameObjectSpawner();
                     string spawnTypeName = XParser.GetString(sourceElement, "spawntype");
                     Type spawnType = Type.GetType(spawnTypeName);
-                    if (!typeof(GameObject).IsAssignableFrom(spawnType))
+                    if (!typeof(LegacyGameObject).IsAssignableFrom(spawnType))
                     {
                         throw new TypeLoadException($"'{spawnTypeName}' is not a valid spawnable GameObject.");
                     }
@@ -164,11 +164,11 @@ namespace MegamanX.Data
 
                 default:
                     var type = Type.GetType(typeName);
-                    if (!typeof(GameObject).IsAssignableFrom(type))
+                    if (!typeof(LegacyGameObject).IsAssignableFrom(type))
                     {
                         throw new TypeLoadException($"'{typeName}' is not a valid GameObject.");
                     }
-                    gameObject = (GameObject)Activator.CreateInstance(type);
+                    gameObject = (LegacyGameObject)Activator.CreateInstance(type);
                     break;
             }
 

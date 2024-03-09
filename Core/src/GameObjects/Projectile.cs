@@ -1,12 +1,12 @@
+using MegamanX.Graphics;
+using MegamanX.Physics;
 using MegamanX.World;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using MegamanX.Physics;
-using MegamanX.Graphics;
 
 namespace MegamanX.GameObjects
 {
-    public class Projectile : GameObject
+    public class Projectile : LegacyGameObject
     {
         public Sprite Sprite { get; set; } = null;
 

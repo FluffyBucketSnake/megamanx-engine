@@ -5,17 +5,17 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace MegamanX.GameObjects.Debug
 {
-    public class PhysicDebugObject : GameObject
+    public class PhysicDebugObject : LegacyGameObject
     {
         public PhysicBody Body;
 
         public PhysicDebugObject()
         {
-            Body = new PhysicBody(new Rectangle(0,0,16,16), Position);
-            Body.Sensors.Add(new PhysicSensor(new Rectangle(-3,0,3,16)));   //Left
-            Body.Sensors.Add(new PhysicSensor(new Rectangle(0,-3,16,3)));   //Top
-            Body.Sensors.Add(new PhysicSensor(new Rectangle(16,0,3,16)));   //Right
-            Body.Sensors.Add(new PhysicSensor(new Rectangle(0,16,16,3)));   //Bottom
+            Body = new PhysicBody(new Rectangle(0, 0, 16, 16), Position);
+            Body.Sensors.Add(new PhysicSensor(new Rectangle(-3, 0, 3, 16)));   //Left
+            Body.Sensors.Add(new PhysicSensor(new Rectangle(0, -3, 16, 3)));   //Top
+            Body.Sensors.Add(new PhysicSensor(new Rectangle(16, 0, 3, 16)));   //Right
+            Body.Sensors.Add(new PhysicSensor(new Rectangle(0, 16, 16, 3)));   //Bottom
         }
 
         protected override void OnPositionChange(PositionChangedArgs e)

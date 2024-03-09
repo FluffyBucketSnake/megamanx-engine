@@ -1,17 +1,17 @@
-﻿using Microsoft.Xna.Framework;
+﻿using System;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
-using System;
 
 namespace MegamanX.GameObjects
 {
-    public class GameObjectSpawner : GameObject
+    public class GameObjectSpawner : LegacyGameObject
     {
         private ContentManager _content;
 
         public Type SpawnType = null;
 
-        public GameObject Spawn;
+        public LegacyGameObject Spawn;
 
         public GameObjectSpawner()
         {
@@ -31,7 +31,7 @@ namespace MegamanX.GameObjects
         {
             if (Map != null && SpawnType != null && (Spawn == null || !Spawn.IsAlive))
             {
-                Spawn = Activator.CreateInstance(SpawnType) as GameObject;
+                Spawn = Activator.CreateInstance(SpawnType) as LegacyGameObject;
                 Spawn.Position = Position;
                 Spawn.LoadContent(_content);
 

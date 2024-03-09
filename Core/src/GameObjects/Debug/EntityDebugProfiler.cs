@@ -5,7 +5,7 @@ namespace MegamanX.GameObjects.Debug
 {
     public class EntityDebugProfiler : IDebugProfiler
     {
-        public void BuildText(GameObject target, StringBuilder builder)
+        public void BuildText(LegacyGameObject target, StringBuilder builder)
         {
             var entity = target as Entity;
             builder.AppendLine($"IsActive: {entity.IsActive}");
@@ -15,7 +15,7 @@ namespace MegamanX.GameObjects.Debug
 
     public class PlayerDebugProfiler : IDebugProfiler
     {
-        public void BuildText(GameObject target, StringBuilder builder)
+        public void BuildText(LegacyGameObject target, StringBuilder builder)
         {
             var entity = target as Player;
             builder.AppendLine($"IsActive: {entity.IsActive}");

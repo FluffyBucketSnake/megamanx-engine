@@ -13,7 +13,7 @@ namespace MegamanX.GameObjects.Debug
             {
                 throw new ArgumentNullException(nameof(targetType));
             }
-            else if (!typeof(GameObject).IsAssignableFrom(targetType))
+            else if (!typeof(LegacyGameObject).IsAssignableFrom(targetType))
             {
                 throw new ArgumentException("Specified target type is not a GameObject.");
             }
@@ -36,7 +36,7 @@ namespace MegamanX.GameObjects.Debug
             {
                 throw new ArgumentNullException(nameof(targetType));
             }
-            else if (!typeof(GameObject).IsAssignableFrom(targetType))
+            else if (!typeof(LegacyGameObject).IsAssignableFrom(targetType))
             {
                 throw new ArgumentException("Specified target type is not a GameObject.");
             }
@@ -57,7 +57,7 @@ namespace MegamanX.GameObjects.Debug
                 throw new ArgumentNullException(nameof(targetType));
             }
 
-            if (!typeof(GameObject).IsAssignableFrom(targetType))
+            if (!typeof(LegacyGameObject).IsAssignableFrom(targetType))
             {
                 return null;
             }

@@ -4,6 +4,6 @@ namespace MegamanX.GameObjects.Debug
 {
     public interface IDebugProfiler
     {
-        void BuildText(GameObject target, StringBuilder builder);
+        void BuildText(LegacyGameObject target, StringBuilder builder);
     }
 }

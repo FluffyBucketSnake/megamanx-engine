@@ -2,7 +2,7 @@ namespace MegamanX.GameObjects
 {
     public class DamageInfo
     {
-        public GameObject Source;
+        public LegacyGameObject Source;
 
         public int Damage;
 
@@ -12,7 +12,7 @@ namespace MegamanX.GameObjects
 
         public Direction2D Direction;
 
-        public DamageInfo(GameObject source, int damage, Direction2D direction, bool ignoreInvincibility = false, 
+        public DamageInfo(LegacyGameObject source, int damage, Direction2D direction, bool ignoreInvincibility = false,
         bool disableKnockback = false)
         {
             Source = source;
