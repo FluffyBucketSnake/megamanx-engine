@@ -101,7 +101,7 @@ namespace MegamanX.GameStates
                 SortEnabledStates();
             }
 
-            foreach (var state in _enabledStates)
+            foreach (GameState state in _enabledStates)
             {
                 state.Update(gameTime);
             }

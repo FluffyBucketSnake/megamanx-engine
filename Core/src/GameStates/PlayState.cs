@@ -4,25 +4,22 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace MegamanX.GameStates
 {
-    public sealed class PlayState : GameState, System.IDisposable
+    public class PlayState : GameState, System.IDisposable
     {
-        private SpriteBatch? spriteBatch;
-
         public GraphicsDevice GraphicsDevice { get; }
         public ContentManager Content { get; }
-        public GameWorld? GameWorld { get; set; }
+        public GameWorld GameWorld { get; }
 
-        public PlayState(GraphicsDevice graphicsDevice, ContentManager content)
+        private readonly SpriteBatch spriteBatch;
+
+        public PlayState(GraphicsDevice graphicsDevice, ContentManager content, GameWorld gameWorld)
         {
             UpdateOrder = 0;
             DrawOrder = 1000;
 
-            GraphicsDevice = graphicsDevice ?? throw new System.ArgumentNullException(nameof(graphicsDevice));
-            Content = content ?? throw new System.ArgumentNullException(nameof(content));
-        }
-
-        public override void Initialize()
-        {
+            GameWorld = gameWorld;
+            GraphicsDevice = graphicsDevice;
+            Content = content;
             spriteBatch = new SpriteBatch(GraphicsDevice);
         }
 
@@ -75,17 +72,18 @@ namespace MegamanX.GameStates
 
         public override void Update(GameTime gameTime)
         {
-            GameWorld?.Update(gameTime);
+            GameWorld.Update(gameTime);
         }
 
         public override void Draw(GameTime gameTime)
         {
-            GameWorld?.Draw(gameTime, spriteBatch!);
+            GameWorld.Draw(gameTime, spriteBatch);
         }
 
         public void Dispose()
         {
-            spriteBatch!.Dispose();
+            spriteBatch.Dispose();
+            System.GC.SuppressFinalize(this);
         }
     }
 }

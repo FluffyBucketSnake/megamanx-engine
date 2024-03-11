@@ -3,15 +3,24 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace MegamanX.Components
 {
-    public class CameraComponent(GameWorld world, Entity entity) : IComponent
+    public class CameraComponent : IComponent
     {
         public Vector2 Position => transformComponent.Position;
 
-        public Rectangle Bounds { get; }
+        public Rectangle Bounds { get; set; }
 
         public Rectangle WorldBounds => Bounds.Translate(transformComponent.Position);
 
-        private readonly TransformComponent transformComponent = entity.GetComponent<TransformComponent>();
+        private readonly GameWorld world;
+        private readonly TransformComponent transformComponent;
+
+        public CameraComponent(GameWorld world, Entity entity, Rectangle? bounds = null)
+        {
+            Bounds = bounds ?? new Rectangle(-128, -114, 256, 224);
+            transformComponent = entity.GetComponent<TransformComponent>();
+            this.world = world;
+            world.CurrentCamera = this;
+        }
 
         void IComponent.Update(GameTime gameTime)
         {

@@ -1,7 +1,6 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using MegamanX.World;
+using MegamanX.Map;
 using Microsoft.Xna.Framework;
 using static System.Math;
 
@@ -9,20 +8,18 @@ namespace MegamanX.Physics
 {
     public class PhysicWorld : IPhysicSensorParent
     {
-        public GameTime CurrentTime { get; private set; }
-
-        public Vector2 Gravity = new Vector2(0, 0.0009f);
+        public Vector2 Gravity { get; set; } = new Vector2(0, 0.0009f);
 
         public PhysicBodyCollection Bodies { get; }
-
         public PhysicSensorCollection Sensors { get; }
 
-        public TileMap Tiles;
+        public TileMap Tiles { get; set; }
 
         private readonly Dictionary<PhysicBody, Vector2> dirtyBodies = [];
 
-        public PhysicWorld()
+        public PhysicWorld(TileMap tiles)
         {
+            Tiles = tiles;
             Bodies = new PhysicBodyCollection(this);
             Sensors = new PhysicSensorCollection(this);
         }
@@ -53,11 +50,10 @@ namespace MegamanX.Physics
 
         public void Update(GameTime gameTime)
         {
-            CurrentTime = gameTime;
-            List<PhysicBody> currentFrameBodies = Bodies.ToList();
+            List<PhysicBody> currentFrameBodies = [.. Bodies];
 
             //Update each body.
-            foreach (PhysicBody? body in currentFrameBodies)
+            foreach (PhysicBody body in currentFrameBodies)
             {
                 //Check if the body moved. If it did, mark as dirty and update delta position. 
                 //If not, just update its sensors.
@@ -100,12 +96,12 @@ namespace MegamanX.Physics
                 //Tilemap collision response.
                 if (collided)
                 {
-                    TileMapCollisionInfo info = new(CurrentTime, penetration);
+                    TileMapCollisionInfo info = new(gameTime, penetration);
                     body.TileMapCollision(info);
                 }
 
                 //Body-to-body collision testing.
-                foreach (var other in currentFrameBodies)
+                foreach (PhysicBody other in currentFrameBodies)
                 {
                     collided = (body.MaskBits & other.CategoryBits) != 0 && (other.MaskBits & body.CategoryBits) != 0 &&
                         body != other && body.WorldBounds.Intersects(other.WorldBounds, out penetration);
@@ -132,11 +128,11 @@ namespace MegamanX.Physics
                                 body.Velocity = new Vector2(0, body.Velocity.Y);
                             }
 
-                            BodyCollisionInfo infoOther = new(CurrentTime, -penetration, body);
+                            BodyCollisionInfo infoOther = new(gameTime, -penetration, body);
                             other.BodyCollision(infoOther);
                         }
 
-                        BodyCollisionInfo info = new(CurrentTime, penetration, other);
+                        BodyCollisionInfo info = new(gameTime, penetration, other);
                         body.BodyCollision(info);
                     }
                 }
@@ -174,7 +170,7 @@ namespace MegamanX.Physics
             {
                 if (Tiles.QueryWallRight(body.WorldBounds, out int wallX))
                 {
-                    int rightWall = (int)Tiles.GetWorldX(wallX);
+                    int rightWall = (int)TileMap.GetWorldX(wallX);
                     int bodyRight = (int)body.Position.X + body.Bounds.Right;
                     if (rightWall < deltaX + bodyRight)
                     {
@@ -191,7 +187,7 @@ namespace MegamanX.Physics
             {
                 if (Tiles.QueryWallLeft(body.WorldBounds, out int wallX))
                 {
-                    int leftWall = (int)Tiles.GetWorldX(wallX) + Tile.Width;
+                    int leftWall = (int)TileMap.GetWorldX(wallX) + Tile.Width;
                     int bodyLeft = (int)body.Position.X + body.Bounds.Left;
                     if (leftWall > deltaX + bodyLeft)
                     {
@@ -217,7 +213,7 @@ namespace MegamanX.Physics
             {
                 if (Tiles.QueryFloor(body.WorldBounds, out int floorY))
                 {
-                    int bottom = (int)Tiles.GetWorldY(floorY);
+                    int bottom = (int)TileMap.GetWorldY(floorY);
                     int bodyBottom = (int)(body.Position.Y + body.Bounds.Bottom);
                     if (bottom <= deltaY + bodyBottom)
                     {
@@ -234,7 +230,7 @@ namespace MegamanX.Physics
             {
                 if (Tiles.QueryCeiling(body.WorldBounds, out int ceilingY))
                 {
-                    int top = (int)Tiles.GetWorldY(ceilingY) + Tile.Height;
+                    int top = (int)TileMap.GetWorldY(ceilingY) + Tile.Height;
                     int bodyTop = (int)body.Position.Y + body.Bounds.Top;
                     if (top > deltaY + bodyTop)
                     {

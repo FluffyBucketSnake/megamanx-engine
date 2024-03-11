@@ -1,5 +1,6 @@
 using MegamanX.Graphics;
 using MegamanX.Input.Keyboard;
+using MegamanX.Math;
 using MegamanX.Physics;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Audio;
@@ -384,15 +385,6 @@ namespace MegamanX.Components
 
         void IComponent.Update(GameTime gameTime)
         {
-            // Update weapon.
-            if (CurrentInput.Fire)
-            {
-                Weapon.Charge(gameTime);
-            }
-            else
-            {
-                Weapon.ResetCharge();
-            }
         }
 
         void IComponent.Draw(GameTime gameTime, SpriteBatch spriteBatch)

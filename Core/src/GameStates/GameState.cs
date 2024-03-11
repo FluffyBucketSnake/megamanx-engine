@@ -80,7 +80,6 @@ namespace MegamanX.GameStates
         public event EventHandler<EventArgs>? DrawOrderChanged;
         public event EventHandler<EventArgs>? VisibleChanged;
 
-        public virtual void Initialize() { }
         public abstract void Draw(GameTime gameTime);
         public abstract void Update(GameTime gameTime);
         public virtual void OnPause() { }
