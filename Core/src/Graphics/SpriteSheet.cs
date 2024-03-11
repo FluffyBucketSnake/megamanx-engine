@@ -4,18 +4,13 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace MegamanX.Graphics
 {
-    public class SpriteSheet
+    public class SpriteSheet(Texture2D texture, SpriteFrame[] frames)
     {
-        public Texture2D Texture { get; }
-        public SpriteFrame[] Frames { get; }
-        public AnimationCollection Animations { get; } = new AnimationCollection();
+        public Texture2D Texture => texture;
+        public SpriteFrame[] Frames => frames;
         public Vector2 Origin { get; set; }
 
-        public SpriteSheet(Texture2D texture, int frameCount)
-        {
-            Texture = texture ?? throw new System.ArgumentNullException(nameof(texture));
-            Frames = new SpriteFrame[frameCount];
-        }
+        public SpriteSheet(Texture2D texture, int frameCount) : this(texture, new SpriteFrame[frameCount]) { }
 
         public Vector2 GetOrigin(int index, SpriteEffects effects)
         {

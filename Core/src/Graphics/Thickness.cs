@@ -12,7 +12,7 @@ namespace MegamanX.Graphics
             Top = Left = Bottom = Right = width;
         }
 
-        public static readonly Thickness Zero = new Thickness(0.0f);
+        public static readonly Thickness Zero = new(0.0f);
 
         public Thickness(float vwidth, float hwidth)
         {
