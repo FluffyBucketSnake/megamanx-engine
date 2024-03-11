@@ -1,8 +1,8 @@
 using Microsoft.Xna.Framework;
 
-namespace MegamanX.GameObjects.Components
+namespace MegamanX.Components
 {
-    public class InteractiveComponent(GameObject parent, Rectangle bounds, bool isActive = false, bool isPersistent = false) : IComponent
+    public class InteractiveComponent(Entity entity, Rectangle bounds, bool isActive = false, bool isPersistent = false) : IComponent
     {
         public bool IsPersistent => isPersistent;
 
@@ -12,7 +12,7 @@ namespace MegamanX.GameObjects.Components
 
         public Rectangle WorldBounds => Bounds.Translate(transform.Position);
 
-        private readonly TransformComponent transform = parent.GetComponent<TransformComponent>();
+        private readonly TransformComponent transform = entity.GetComponent<TransformComponent>();
 
         public void Activate()
         {

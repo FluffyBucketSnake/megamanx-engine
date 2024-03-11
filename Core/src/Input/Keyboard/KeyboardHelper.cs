@@ -6,7 +6,7 @@ namespace MegamanX.Input.Keyboard
 {
     public static class KeyboardHelper
     {
-        public readonly static IEnumerable<Keys> Keys;
+        public static readonly IEnumerable<Keys> Keys;
 
         static KeyboardHelper()
         {

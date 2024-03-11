@@ -16,25 +16,25 @@ namespace MegamanX
 
         public static Rectangle GetTop(this Rectangle rectangle, int height)
         {
-            return new Rectangle(rectangle.Left,rectangle.Top - height, 
+            return new Rectangle(rectangle.Left, rectangle.Top - height,
             rectangle.Width, height);
         }
 
         public static Rectangle GetLeft(this Rectangle rectangle, int width)
         {
-            return new Rectangle(rectangle.Left - width,rectangle.Top, 
+            return new Rectangle(rectangle.Left - width, rectangle.Top,
             width, rectangle.Height);
         }
 
         public static Rectangle GetBottom(this Rectangle rectangle, int height)
         {
-            return new Rectangle(rectangle.Left,rectangle.Bottom, 
+            return new Rectangle(rectangle.Left, rectangle.Bottom,
             rectangle.Width, height);
         }
 
         public static Rectangle GetRight(this Rectangle rectangle, int width)
         {
-            return new Rectangle(rectangle.Right,rectangle.Top, 
+            return new Rectangle(rectangle.Right, rectangle.Top,
             width, rectangle.Height);
         }
 
@@ -42,7 +42,7 @@ namespace MegamanX
         {
             if (me.Intersects(other))
             {
-                float pX,pY;
+                float pX, pY;
 
                 int dX1 = me.Right - other.Left;
                 int dX2 = other.Right - me.Left;
@@ -52,7 +52,7 @@ namespace MegamanX
                 int dY2 = other.Bottom - me.Top;
                 pY = (dY1 <= dY2) ? dY1 : -dY2;
 
-                penetration = new Vector2(pX,pY);
+                penetration = new Vector2(pX, pY);
                 return true;
             }
             else

@@ -1,25 +1,16 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
+using static System.Math;
 
-namespace MegamanX.World
+namespace MegamanX.Map
 {
-    public class TileMap
+    public class TileMap(int gridWidth, int gridHeight)
     {
-        public int GridWidth { get; }
+        public int GridWidth => gridWidth;
+        public int GridHeight => gridHeight;
 
-        public int GridHeight { get; }
-
-        Tile[,] tiles;
-
-        public TileMap(int gridWidth, int gridHeight)
-        {
-            //Set tilemap size.
-            GridWidth = gridWidth;
-            GridHeight = gridHeight;
-            //Create tile array.
-            tiles = new Tile[gridHeight, gridWidth];
-        }
+        private readonly Tile[,] tiles = new Tile[gridHeight, gridWidth];
 
         public Tile this[int gridX, int gridY]
         {
@@ -53,24 +44,32 @@ namespace MegamanX.World
             }
         }
 
-        public float GetWorldX(int x) => x * Tile.Width;
+        public static float GetWorldX(int x)
+        {
+            return x * Tile.Width;
+        }
 
-        public float GetWorldY(int y) => y * Tile.Height;
+        public static float GetWorldY(int y)
+        {
+            return y * Tile.Height;
+        }
 
-        public Vector2 GetWorldPosition(Point tilePosition) =>
-        new Vector2(GetWorldX(tilePosition.X), GetWorldY(tilePosition.Y));
+        public static Vector2 GetWorldPosition(Point tilePosition)
+        {
+            return new Vector2(GetWorldX(tilePosition.X), GetWorldY(tilePosition.Y));
+        }
 
-        public int GetTileX(float x)
+        public static int GetTileX(float x)
         {
             return (int)(x / Tile.Width);
         }
 
-        public int GetTileY(float y)
+        public static int GetTileY(float y)
         {
             return (int)(y / Tile.Height);
         }
 
-        public Point GetTilePosition(Vector2 position)
+        public static Point GetTilePosition(Vector2 position)
         {
             return new Point(GetTileX(position.X), GetTileY(position.Y));
         }
@@ -79,8 +78,8 @@ namespace MegamanX.World
         {
             int gridAreaLeft = GetTileX(area.Left);
             int gridAreaTop = GetTileY(area.Top);
-            int gridAreaRight = GetTileX(Math.Max(area.Left,area.Right - 1));
-            int gridAreaBottom = GetTileY(Math.Max(area.Top,area.Bottom - 1));
+            int gridAreaRight = GetTileX(Max(area.Left, area.Right - 1));
+            int gridAreaBottom = GetTileY(Max(area.Top, area.Bottom - 1));
 
             for (int x = gridAreaLeft; x <= gridAreaRight; x++)
             {
@@ -102,12 +101,12 @@ namespace MegamanX.World
 
         public IEnumerable<Point> Select(Rectangle area, Predicate<Tile> predicate)
         {
-            ICollection<Point> results = new List<Point>();
+            List<Point> results = [];
 
             int gridAreaLeft = GetTileX(area.Left);
             int gridAreaTop = GetTileY(area.Top);
-            int gridAreaRight = GetTileX(Math.Max(area.Left,area.Right - 1));
-            int gridAreaBottom = GetTileY(Math.Max(area.Top,area.Bottom - 1));
+            int gridAreaRight = GetTileX(Max(area.Left, area.Right - 1));
+            int gridAreaBottom = GetTileY(Max(area.Top, area.Bottom - 1));
 
             for (int x = gridAreaLeft; x <= gridAreaRight; x++)
             {
@@ -119,7 +118,7 @@ namespace MegamanX.World
                     }
                 }
             }
-            
+
             return results;
         }
 
@@ -136,8 +135,8 @@ namespace MegamanX.World
         public bool QueryFloor(Rectangle area, out int floorY)
         {
             int gridAreaLeft = GetTileX(area.Left);
-            int gridAreaRight = GetTileX(Math.Max(area.Left,area.Right - 1));
-            int gridAreaBottom = GetTileY(Math.Max(area.Top,area.Bottom - 1));
+            int gridAreaRight = GetTileX(Max(area.Left, area.Right - 1));
+            int gridAreaBottom = GetTileY(Max(area.Top, area.Bottom - 1));
 
             floorY = 0;
             for (int y = gridAreaBottom; y < GridHeight; y++)

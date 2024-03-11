@@ -6,25 +6,18 @@ namespace MegamanX.Input.Mouse
     {
         public static ButtonState GetButtonState(this MouseState state, MouseButtons button)
         {
-            switch (button)
+            return button switch
             {
-                case MouseButtons.Left:
-                return state.LeftButton;
-
-                case MouseButtons.Right:
-                return state.RightButton;
-
-                case MouseButtons.Middle:
-                return state.MiddleButton;
-
-                default:
-                return ButtonState.Released;
-            }
+                MouseButtons.Left => state.LeftButton,
+                MouseButtons.Right => state.RightButton,
+                MouseButtons.Middle => state.MiddleButton,
+                _ => ButtonState.Released,
+            };
         }
 
         public static bool CheckButtonState(this MouseState state, MouseButtons button)
         {
-            return (state.GetButtonState(button) == ButtonState.Pressed);
+            return state.GetButtonState(button) == ButtonState.Pressed;
         }
     }
 }

@@ -1,7 +1,6 @@
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
 
-namespace MegamanX.GameObjects.Components
+namespace MegamanX.Components
 {
     public class TransformComponent(Vector2 position) : IComponent
     {

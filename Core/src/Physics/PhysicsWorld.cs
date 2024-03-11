@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using MegamanX.World;
 using Microsoft.Xna.Framework;
+using static System.Math;
 
 namespace MegamanX.Physics
 {
@@ -18,7 +19,7 @@ namespace MegamanX.Physics
 
         public TileMap Tiles;
 
-        private readonly Dictionary<PhysicBody, Vector2> dirtyBodies = new Dictionary<PhysicBody, Vector2>();
+        private readonly Dictionary<PhysicBody, Vector2> dirtyBodies = [];
 
         public PhysicWorld()
         {
@@ -36,31 +37,31 @@ namespace MegamanX.Physics
 
         public bool CheckSolid(Rectangle area)
         {
-            return Tiles.AnySolid(area) 
-            || Bodies.Any(e => e.WorldBounds.Intersects(area) 
+            return Tiles.AnySolid(area)
+            || Bodies.Any(e => e.WorldBounds.Intersects(area)
                 && e.Type == CollisionTypes.Solid);
         }
 
         public bool CheckSolid(Rectangle area, uint maskBits, uint categoryBits)
         {
-            return Tiles.AnySolid(area) 
+            return Tiles.AnySolid(area)
             || Bodies.Any(e => (maskBits & e.CategoryBits) != 0
                 && (e.MaskBits & categoryBits) != 0
-                && e.WorldBounds.Intersects(area) 
+                && e.WorldBounds.Intersects(area)
                 && e.Type == CollisionTypes.Solid);
         }
 
         public void Update(GameTime gameTime)
         {
             CurrentTime = gameTime;
-            var currentFrameBodies = Bodies.ToList();
+            List<PhysicBody> currentFrameBodies = Bodies.ToList();
 
             //Update each body.
-            foreach (var body in currentFrameBodies)
+            foreach (PhysicBody? body in currentFrameBodies)
             {
                 //Check if the body moved. If it did, mark as dirty and update delta position. 
                 //If not, just update its sensors.
-                Vector2 deltaPosition = body.Speed * gameTime.ElapsedGameTime.Milliseconds;
+                Vector2 deltaPosition = body.Velocity * gameTime.ElapsedGameTime.Milliseconds;
                 if (deltaPosition.X != 0 || deltaPosition.Y != 0)
                 {
                     MarkAsDirty(body, deltaPosition);
@@ -71,12 +72,12 @@ namespace MegamanX.Physics
                 }
 
                 //Apply gravity if not on ground.
-                body.Speed += Gravity * body.GravityScale * 
+                body.Velocity += Gravity * body.GravityScale *
                 gameTime.ElapsedGameTime.Milliseconds;
             }
 
             //Update dirty bodies.
-            foreach (var pair in dirtyBodies)
+            foreach (KeyValuePair<PhysicBody, Vector2> pair in dirtyBodies)
             {
                 PhysicBody body = pair.Key;
                 Vector2 translation = pair.Value;
@@ -89,19 +90,17 @@ namespace MegamanX.Physics
                 {
                     collided = HandleTileCollisionY(body, translation.Y, out penetration.Y);
                 }
-                body.Position.Y += translation.Y - penetration.Y;
+                body.Position += new Vector2(0, translation.Y - penetration.Y);
                 if (body.IsTangible)
                 {
                     collided |= HandleTileCollisionX(body, translation.X, out penetration.X);
                 }
-                body.Position.X += translation.X - penetration.X;
+                body.Position += new Vector2(translation.X - penetration.X, 0);
 
                 //Tilemap collision response.
                 if (collided)
                 {
-                    TileMapCollisionInfo info = new TileMapCollisionInfo();
-                    info.GameTime = CurrentTime;
-                    info.Penetration = penetration;
+                    TileMapCollisionInfo info = new(CurrentTime, penetration);
                     body.TileMapCollision(info);
                 }
 
@@ -112,7 +111,7 @@ namespace MegamanX.Physics
                         body != other && body.WorldBounds.Intersects(other.WorldBounds, out penetration);
                     if (collided)
                     {
-                        if (Math.Abs(penetration.X) > Math.Abs(penetration.Y))
+                        if (Abs(penetration.X) > Abs(penetration.Y))
                         {
                             penetration.X = 0;
                         }
@@ -124,26 +123,20 @@ namespace MegamanX.Physics
                         if (body.IsTangible && other.Type == CollisionTypes.Solid)
                         {
                             body.Position -= penetration;
-                            if (penetration.Y * body.Speed.Y > 0)
+                            if (penetration.Y * body.Velocity.Y > 0)
                             {
-                                body.Speed.Y = 0;
+                                body.Velocity = new Vector2(body.Velocity.X, 0);
                             }
-                            else if (penetration.X * body.Speed.X > 0)
+                            else if (penetration.X * body.Velocity.X > 0)
                             {
-                                body.Speed.X = 0;
+                                body.Velocity = new Vector2(0, body.Velocity.Y);
                             }
 
-                            BodyCollisionInfo infoOther = new BodyCollisionInfo();
-                            infoOther.GameTime = CurrentTime;
-                            infoOther.Penetration = -penetration;
-                            infoOther.CollidingBody = body;
+                            BodyCollisionInfo infoOther = new(CurrentTime, -penetration, body);
                             other.BodyCollision(infoOther);
                         }
 
-                        BodyCollisionInfo info = new BodyCollisionInfo();
-                        info.GameTime = CurrentTime;
-                        info.Penetration = penetration;
-                        info.CollidingBody = other;
+                        BodyCollisionInfo info = new(CurrentTime, penetration, other);
                         body.BodyCollision(info);
                     }
                 }
@@ -154,7 +147,7 @@ namespace MegamanX.Physics
             dirtyBodies.Clear();
 
             //Update global sensors.
-            foreach (var sensor in Sensors)
+            foreach (PhysicSensor sensor in Sensors)
             {
                 sensor.State = CheckSolid(sensor.Area, sensor.MaskBits, sensor.CategoryBits);
             }
@@ -162,7 +155,7 @@ namespace MegamanX.Physics
 
         private void UpdateBodySensors(PhysicBody body)
         {
-            foreach (var sensor in body.Sensors)
+            foreach (PhysicSensor sensor in body.Sensors)
             {
                 Rectangle worldArea = sensor.Area;
                 worldArea.Offset(body.Position);
@@ -179,8 +172,7 @@ namespace MegamanX.Physics
 
             if (deltaX > 0)
             {
-                int wallX;
-                if (Tiles.QueryWallRight(body.WorldBounds, out wallX))
+                if (Tiles.QueryWallRight(body.WorldBounds, out int wallX))
                 {
                     int rightWall = (int)Tiles.GetWorldX(wallX);
                     int bodyRight = (int)body.Position.X + body.Bounds.Right;
@@ -188,17 +180,16 @@ namespace MegamanX.Physics
                     {
                         collided = true;
                         penetration = deltaX + bodyRight - rightWall;
-                        if (body.Speed.X > 0)
+                        if (body.Velocity.X > 0)
                         {
-                            body.Speed.X = 0;
+                            body.Velocity = new Vector2(0, body.Velocity.Y);
                         }
                     }
                 }
             }
             else if (deltaX < 0)
             {
-                int wallX;
-                if (Tiles.QueryWallLeft(body.WorldBounds, out wallX))
+                if (Tiles.QueryWallLeft(body.WorldBounds, out int wallX))
                 {
                     int leftWall = (int)Tiles.GetWorldX(wallX) + Tile.Width;
                     int bodyLeft = (int)body.Position.X + body.Bounds.Left;
@@ -206,9 +197,9 @@ namespace MegamanX.Physics
                     {
                         collided = true;
                         penetration = deltaX + bodyLeft - leftWall;
-                        if (body.Speed.X > 0)
+                        if (body.Velocity.X > 0)
                         {
-                            body.Speed.X = 0;
+                            body.Velocity = new Vector2(0, body.Velocity.Y);
                         }
                     }
                 }
@@ -224,8 +215,7 @@ namespace MegamanX.Physics
 
             if (deltaY > 0)
             {
-                int floorY;
-                if (Tiles.QueryFloor(body.WorldBounds, out floorY))
+                if (Tiles.QueryFloor(body.WorldBounds, out int floorY))
                 {
                     int bottom = (int)Tiles.GetWorldY(floorY);
                     int bodyBottom = (int)(body.Position.Y + body.Bounds.Bottom);
@@ -233,17 +223,16 @@ namespace MegamanX.Physics
                     {
                         collided = true;
                         penetration = deltaY + bodyBottom - bottom;
-                        if (body.Speed.Y > 0)
+                        if (body.Velocity.Y > 0)
                         {
-                            body.Speed.Y = 0;
+                            body.Velocity = new Vector2(body.Velocity.X, 0);
                         }
                     }
                 }
             }
             else if (deltaY < 0)
             {
-                int ceilingY;
-                if (Tiles.QueryCeiling(body.WorldBounds, out ceilingY))
+                if (Tiles.QueryCeiling(body.WorldBounds, out int ceilingY))
                 {
                     int top = (int)Tiles.GetWorldY(ceilingY) + Tile.Height;
                     int bodyTop = (int)body.Position.Y + body.Bounds.Top;
@@ -251,9 +240,9 @@ namespace MegamanX.Physics
                     {
                         collided = true;
                         penetration = deltaY + bodyTop - top;
-                        if (body.Speed.Y < 0)
+                        if (body.Velocity.Y < 0)
                         {
-                            body.Speed.Y = 0;
+                            body.Velocity = new Vector2(body.Velocity.X, 0);
                         }
                     }
                 }
@@ -264,17 +253,13 @@ namespace MegamanX.Physics
 
         private void MarkAsDirty(PhysicBody body, Vector2 deltaPosition)
         {
-            if (dirtyBodies.ContainsKey(body))
+            if (!dirtyBodies.TryAdd(body, deltaPosition))
             {
                 dirtyBodies[body] += deltaPosition;
                 if (deltaPosition.X == 0 && deltaPosition.Y == 0)
                 {
-                    dirtyBodies.Remove(body);
+                    _ = dirtyBodies.Remove(body);
                 }
-            }
-            else
-            {
-                dirtyBodies.Add(body, deltaPosition);
             }
         }
     }

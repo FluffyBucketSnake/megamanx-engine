@@ -4,13 +4,11 @@ namespace MegamanX.Physics
 {
     public class PhysicSensor
     {
-        public Rectangle Area;
+        public Rectangle Area { get; set; }
+        public ushort MaskBits { get; set; } = 0x0001;
+        public ushort CategoryBits { get; set; } = 0xFFFF;
 
-        public ushort MaskBits = 0x0001;
-
-        public ushort CategoryBits = 0xFFFF;
-
-        public IPhysicSensorParent Parent { get; internal set; }
+        public IPhysicSensorParent? Parent { get; internal set; }
 
         public PhysicSensor(Rectangle area)
         {

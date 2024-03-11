@@ -3,23 +3,9 @@ using Microsoft.Xna.Framework;
 
 namespace MegamanX.Physics
 {
+    public record BodyCollisionInfo(GameTime GameTime, Vector2 Penetration, PhysicBody CollidingBody);
+    public record TileMapCollisionInfo(GameTime GameTime, Vector2 Penetration);
+
     public delegate void BodyCollisionEventHandler(BodyCollisionInfo info);
-
-    public class BodyCollisionInfo
-    {
-        public GameTime GameTime;
-
-        public Vector2 Penetration;
-
-        public PhysicBody CollidingBody;
-    }
-
     public delegate void TilemapCollisionEventHandler(TileMapCollisionInfo info);
-
-    public class TileMapCollisionInfo
-    {
-        public GameTime GameTime;
-
-        public Vector2 Penetration;
-    }
 }

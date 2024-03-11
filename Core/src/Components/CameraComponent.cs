@@ -1,10 +1,9 @@
-using MegamanX.World;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-namespace MegamanX.GameObjects.Components
+namespace MegamanX.Components
 {
-    public class CameraComponent(GameWorld world, GameObject gameObject) : IComponent
+    public class CameraComponent(GameWorld world, Entity entity) : IComponent
     {
         public Vector2 Position => transformComponent.Position;
 
@@ -12,18 +11,18 @@ namespace MegamanX.GameObjects.Components
 
         public Rectangle WorldBounds => Bounds.Translate(transformComponent.Position);
 
-        private readonly TransformComponent transformComponent = gameObject.GetComponent<TransformComponent>();
+        private readonly TransformComponent transformComponent = entity.GetComponent<TransformComponent>();
 
         void IComponent.Update(GameTime gameTime)
         {
-            foreach (GameObject gameObject in world.Objects)
+            foreach (Entity entity in world.Entities)
             {
-                InteractiveComponent? interactive = gameObject.TryGetComponent<InteractiveComponent>();
+                InteractiveComponent? interactive = entity.TryGetComponent<InteractiveComponent>();
                 if (interactive == null || interactive.IsPersistent)
                 {
                     continue;
                 }
-                gameObject.IsActive = WorldBounds.Intersects(interactive.WorldBounds);
+                entity.IsActive = WorldBounds.Intersects(interactive.WorldBounds);
             }
         }
 

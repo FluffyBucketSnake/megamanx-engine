@@ -7,9 +7,9 @@ namespace MegamanX.GameStates
 {
     public static class GameStateManager
     {
-        private static List<GameState> _states = new List<GameState>();
-        private static List<GameState> _enabledStates = new List<GameState>();
-        private static List<GameState> _visibleStates = new List<GameState>();
+        private static readonly List<GameState> _states = [];
+        private static readonly List<GameState> _enabledStates = [];
+        private static readonly List<GameState> _visibleStates = [];
         private static bool _enabledDirty;
         private static bool _visibleDirty;
 
@@ -66,9 +66,9 @@ namespace MegamanX.GameStates
             state.DrawOrderChanged -= OnGameStateDrawOrderChanged;
 
             // Remove state from collections.
-            _states.Remove(state);
-            _enabledStates.Remove(state);
-            _visibleStates.Remove(state);
+            _ = _states.Remove(state);
+            _ = _enabledStates.Remove(state);
+            _ = _visibleStates.Remove(state);
         }
 
         /// <summary>
@@ -119,16 +119,15 @@ namespace MegamanX.GameStates
                 SortVisibleStates();
             }
 
-            foreach (var state in _visibleStates)
+            foreach (GameState state in _visibleStates)
             {
                 state.Draw(gameTime);
             }
         }
 
-        private static void OnGameStateEnabledChanged(object sender, EventArgs e)
+        private static void OnGameStateEnabledChanged(object? sender, EventArgs e)
         {
-            var state = sender as GameState;
-            
+            GameState state = (sender as GameState)!;
             if (state.Enabled)
             {
                 _enabledStates.Add(state);
@@ -136,14 +135,13 @@ namespace MegamanX.GameStates
             }
             else
             {
-                _enabledStates.Remove(state);
+                _ = _enabledStates.Remove(state);
             }
         }
 
-        private static void OnGameStateVisibleChanged(object sender, EventArgs e)
+        private static void OnGameStateVisibleChanged(object? sender, EventArgs e)
         {
-            var state = sender as GameState;
-            
+            GameState state = (sender as GameState)!;
             if (state.Visible)
             {
                 _visibleStates.Add(state);
@@ -151,22 +149,22 @@ namespace MegamanX.GameStates
             }
             else
             {
-                _visibleStates.Remove(state);
+                _ = _visibleStates.Remove(state);
             }
         }
 
-        private static void OnGameStateUpdateOrderChanged(object sender, EventArgs e)
+        private static void OnGameStateUpdateOrderChanged(object? sender, EventArgs e)
         {
-            var state = sender as GameState;
+            GameState state = (sender as GameState)!;
             if (state.Enabled)
             {
                 _enabledDirty = true;
             }
         }
 
-        private static void OnGameStateDrawOrderChanged(object sender, EventArgs e)
+        private static void OnGameStateDrawOrderChanged(object? sender, EventArgs e)
         {
-            var state = sender as GameState;
+            GameState state = (sender as GameState)!;
             if (state.Visible)
             {
                 _visibleDirty = true;
@@ -175,34 +173,12 @@ namespace MegamanX.GameStates
 
         private static int ComparisonUpdateOrder(GameState a, GameState b)
         {
-            if (a.UpdateOrder < b.UpdateOrder)
-            {
-                return -1;
-            }
-            else if (a.UpdateOrder == b.UpdateOrder)
-            {
-                return 0;
-            }
-            else
-            {
-                return 1;
-            }
+            return a.UpdateOrder < b.UpdateOrder ? -1 : a.UpdateOrder == b.UpdateOrder ? 0 : 1;
         }
 
         private static int ComparisonDrawOrder(GameState a, GameState b)
         {
-            if (a.DrawOrder < b.DrawOrder)
-            {
-                return -1;
-            }
-            else if (a.DrawOrder == b.DrawOrder)
-            {
-                return 0;
-            }
-            else
-            {
-                return 1;
-            }
+            return a.DrawOrder < b.DrawOrder ? -1 : a.DrawOrder == b.DrawOrder ? 0 : 1;
         }
     }
 }

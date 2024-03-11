@@ -8,8 +8,8 @@ namespace MegamanX.GameStates
         private bool _enabled, _visible;
         private int _updateOrder, _drawOrder;
 
-        public bool Enabled 
-        { 
+        public bool Enabled
+        {
             get => _enabled;
             set
             {
@@ -29,8 +29,8 @@ namespace MegamanX.GameStates
                 }
             }
         }
-        public bool Visible 
-        { 
+        public bool Visible
+        {
             get => _visible;
             set
             {
@@ -50,8 +50,8 @@ namespace MegamanX.GameStates
                 }
             }
         }
-        public int UpdateOrder 
-        { 
+        public int UpdateOrder
+        {
             get => _updateOrder;
             set
             {
@@ -62,8 +62,8 @@ namespace MegamanX.GameStates
                 }
             }
         }
-        public int DrawOrder 
-        { 
+        public int DrawOrder
+        {
             get => _drawOrder;
             set
             {
@@ -75,10 +75,10 @@ namespace MegamanX.GameStates
             }
         }
 
-        public event EventHandler<EventArgs> EnabledChanged;
-        public event EventHandler<EventArgs> UpdateOrderChanged;
-        public event EventHandler<EventArgs> DrawOrderChanged;
-        public event EventHandler<EventArgs> VisibleChanged;
+        public event EventHandler<EventArgs>? EnabledChanged;
+        public event EventHandler<EventArgs>? UpdateOrderChanged;
+        public event EventHandler<EventArgs>? DrawOrderChanged;
+        public event EventHandler<EventArgs>? VisibleChanged;
 
         public virtual void Initialize() { }
         public abstract void Draw(GameTime gameTime);

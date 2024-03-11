@@ -7,8 +7,8 @@ namespace MegamanX.Input.Keyboard
 {
     public class KeyboardComponent : GameComponent, IKeyboardDevice
     {
-        KeyboardState _currentState;
-        KeyboardState _lastState;
+        private KeyboardState _currentState;
+        private KeyboardState _lastState;
 
         public KeyboardComponent(Game game) : base(game)
         {
@@ -20,11 +20,9 @@ namespace MegamanX.Input.Keyboard
             game.Services.AddService<IKeyboardDevice>(this);
         }
 
-        public event KeyboardEventHandler KeyDown;
-
-        public event KeyboardEventHandler KeyUp;
-
-        public event KeyboardEventHandler TextInput;
+        public event KeyboardEventHandler? KeyDown;
+        public event KeyboardEventHandler? KeyUp;
+        public event KeyboardEventHandler? TextInput;
 
         public bool IsKeyDown(Keys key)
         {
@@ -45,9 +43,9 @@ namespace MegamanX.Input.Keyboard
         {
             _lastState = _currentState;
             _currentState = XnaKeyboard.GetState();
-            
+
             // TODO: Map keys to characters.
-            foreach (var key in KeyboardHelper.Keys)
+            foreach (Keys key in KeyboardHelper.Keys)
             {
                 if (IsKeyPressed(key))
                 {

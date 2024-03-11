@@ -8,7 +8,6 @@ namespace MegamanX.Input.Mouse
     public class MouseComponent : GameComponent, IMouseDevice
     {
         private MouseState _currentState;
-
         private MouseState _lastState;
 
         public MouseComponent(Game game) : base(game)
@@ -16,14 +15,11 @@ namespace MegamanX.Input.Mouse
             game.Services.AddService<IMouseDevice>(this);
         }
 
-        public event MouseEventHandler ButtonDown;
-
-        public event MouseEventHandler ButtonUp;
-
-        public event MouseEventHandler Move;
+        public event MouseEventHandler? ButtonDown;
+        public event MouseEventHandler? ButtonUp;
+        public event MouseEventHandler? Move;
 
         public Vector2 Position => _currentState.Position.ToVector2();
-
         public Vector2 Speed => Position - _lastState.Position.ToVector2();
 
         public bool IsButtonDown(MouseButtons button)

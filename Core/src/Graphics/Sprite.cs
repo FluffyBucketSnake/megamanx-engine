@@ -1,19 +1,11 @@
-using System;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
 namespace MegamanX.Graphics
 {
-    public class Sprite
+    public class Sprite(SpriteSheet template)
     {
-        public Sprite(SpriteSheet template)
-        {
-            Template = template ?? throw new ArgumentNullException(nameof(template));
-        }
-
-        public event EventHandler<AnimationEventArgs> OnAnimationComplete;
-
-        public SpriteSheet Template { get; }
+        public SpriteSheet Template { get => template; set => template = value; }
         public int FrameIndex { get; set; }
         public SpriteFrame CurrentFrame => Template.Frames[FrameIndex];
         public float CurrentTime { get; set; }

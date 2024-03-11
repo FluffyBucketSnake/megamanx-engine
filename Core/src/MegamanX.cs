@@ -12,48 +12,40 @@ namespace MegamanX
 {
     public class MegamanX : Game
     {
-        KeyboardComponent keyboard;
-        GraphicsDeviceManager graphics;
+        private KeyboardComponent keyboard;
+        private GraphicsDeviceManager graphics;
 
         public MegamanX()
         {
-            graphics = new GraphicsDeviceManager(this);
-            graphics.PreferredBackBufferWidth = 512;
-            graphics.PreferredBackBufferHeight = 448;
+            graphics = new GraphicsDeviceManager(this)
+            {
+                PreferredBackBufferWidth = 512,
+                PreferredBackBufferHeight = 448
+            };
 
             Content.RootDirectory = "Content";
 
             IsMouseVisible = true;
             IsFixedTimeStep = true;
-        }
 
-        protected override void Initialize()
-        {
-            //Initialize keyboard input.
             keyboard = new KeyboardComponent(this);
             Components.Add(keyboard);
-
-            //Call base class's initialization.
-            base.Initialize();
         }
 
         protected override void LoadContent()
         {
             //Create play state.
-            var playState = new PlayState(GraphicsDevice, Content);
+            PlayState playState = new(GraphicsDevice, Content);
             playState.Initialize();
-            playState.LoadLevel("Maps/debug0.tmx");
+            // playState.LoadLevel("Maps/debug0.tmx");
 
-            keyboard.KeyDown += e =>
-            {
-                if (e.Key == Keys.F2)
-                {
-                    playState.ReloadLevel();
-                }
-            };
-
-            //screen.DebugProfilers.RegisterProfiler(typeof(Entity), new EntityDebugProfiler());
-            //screen.DebugProfilers.RegisterProfiler(typeof(Player), new PlayerDebugProfiler());
+            // keyboard.KeyDown += e =>
+            // {
+            //     if (e.Key == Keys.F2)
+            //     {
+            //         playState.ReloadLevel();
+            //     }
+            // };
 
             playState.Enabled = true;
             playState.Visible = true;
@@ -66,7 +58,9 @@ namespace MegamanX
         {
             //Use default exit input from the Monogame template.
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
+            {
                 Exit();
+            }
 
             //Call base class's Update method.
             base.Update(gameTime);

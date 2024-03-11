@@ -4,20 +4,13 @@ using System.Collections.Generic;
 
 namespace MegamanX.Physics
 {
-    public class PhysicBodyCollection : ICollection<PhysicBody>
+    public class PhysicBodyCollection(PhysicWorld world) : ICollection<PhysicBody>
     {
-        private List<PhysicBody> bodies = new List<PhysicBody>();
+        private readonly List<PhysicBody> bodies = [];
 
         public int Count => bodies.Count;
-
         public bool IsReadOnly => false;
-
-        public PhysicWorld World { get; }
-
-        public PhysicBodyCollection(PhysicWorld world)
-        {
-            World = world;
-        }
+        public PhysicWorld World => world;
 
         public void Add(PhysicBody item)
         {
@@ -33,7 +26,7 @@ namespace MegamanX.Physics
 
         public void Clear()
         {
-            foreach (var body in bodies)
+            foreach (PhysicBody body in bodies)
             {
                 body.World = null;
             }

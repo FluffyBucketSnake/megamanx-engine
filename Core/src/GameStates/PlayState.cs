@@ -1,20 +1,16 @@
-using MegamanX.Data;
-using MegamanX.World;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
-using Microsoft.Xna.Framework.Media;
 
 namespace MegamanX.GameStates
 {
-    public class PlayState : GameState
+    public sealed class PlayState : GameState, System.IDisposable
     {
-        SpriteBatch spriteBatch;
+        private SpriteBatch? spriteBatch;
 
         public GraphicsDevice GraphicsDevice { get; }
         public ContentManager Content { get; }
-        public string MapFilePath { get; private set;}
-        public GameWorld GameWorld { get; private set; }
+        public GameWorld? GameWorld { get; set; }
 
         public PlayState(GraphicsDevice graphicsDevice, ContentManager content)
         {
@@ -29,56 +25,53 @@ namespace MegamanX.GameStates
         {
             spriteBatch = new SpriteBatch(GraphicsDevice);
         }
-        
-        public void LoadLevel(string path)
-        {
-            if (path == null)
-            {
-                throw new System.ArgumentNullException(nameof(path));
-            }
-            
-            //Load level.
-            MapFilePath = path;
-            GameWorld = MapLoader.LoadFromTMX(MapFilePath, Content, Content.ServiceProvider);
 
-            //Load entities content.
-            foreach (var entity in GameWorld.Objects)
-            {
-                entity.LoadContent(Content);
-            }
+        // public void LoadLevel(string path)
+        // {
+        //     System.ArgumentNullException.ThrowIfNull(path);
+        //
+        //     //Load level.
+        //     MapFilePath = path;
+        //     GameWorld = MapLoader.LoadFromTMX(MapFilePath, Content, Content.ServiceProvider);
+        //
+        //     //Load entities content.
+        //     foreach (var entity in GameWorld.Entities)
+        //     {
+        //         entity.LoadContent(Content);
+        //     }
+        //
+        //     //Change music.
+        //     MediaPlayer.Stop();
+        //     if (GameWorld.Music != null)
+        //     {
+        //         MediaPlayer.IsRepeating = true;
+        //         MediaPlayer.Play(GameWorld.Music);
+        //     }
+        // }
 
-            //Change music.
-            MediaPlayer.Stop();
-            if (GameWorld.Music != null)
-            {
-                MediaPlayer.IsRepeating = true;
-                MediaPlayer.Play(GameWorld.Music);
-            }
-        }
-
-        public void ReloadLevel()
-        {
-            if (MapFilePath == null)
-            {
-                return;
-            }
-
-            GameWorld = MapLoader.LoadFromTMX(MapFilePath, Content, Content.ServiceProvider);
-
-            //Load entities content.
-            foreach (var entity in GameWorld.Objects)
-            {
-                entity.LoadContent(Content);
-            }
-
-            //Change music.
-            MediaPlayer.Stop();
-            if (GameWorld.Music != null)
-            {
-                MediaPlayer.IsRepeating = true;
-                MediaPlayer.Play(GameWorld.Music);
-            }
-        }
+        // public void ReloadLevel()
+        // {
+        //     if (MapFilePath == null)
+        //     {
+        //         return;
+        //     }
+        //
+        //     GameWorld = MapLoader.LoadFromTMX(MapFilePath, Content, Content.ServiceProvider);
+        //
+        //     //Load entities content.
+        //     foreach (var entity in GameWorld.Objects)
+        //     {
+        //         entity.LoadContent(Content);
+        //     }
+        //
+        //     //Change music.
+        //     MediaPlayer.Stop();
+        //     if (GameWorld.Music != null)
+        //     {
+        //         MediaPlayer.IsRepeating = true;
+        //         MediaPlayer.Play(GameWorld.Music);
+        //     }
+        // }
 
         public override void Update(GameTime gameTime)
         {
@@ -87,7 +80,12 @@ namespace MegamanX.GameStates
 
         public override void Draw(GameTime gameTime)
         {
-            GameWorld?.Draw(gameTime, spriteBatch);
+            GameWorld?.Draw(gameTime, spriteBatch!);
+        }
+
+        public void Dispose()
+        {
+            spriteBatch!.Dispose();
         }
     }
 }

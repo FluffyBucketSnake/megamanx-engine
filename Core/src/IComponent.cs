@@ -1,7 +1,7 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-namespace MegamanX.GameObjects.Components
+namespace MegamanX
 {
     public interface IComponent
     {

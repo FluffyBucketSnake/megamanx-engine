@@ -11,35 +11,32 @@ namespace MegamanX.Physics
 
     public class PhysicBody : IPhysicSensorParent
     {
-        public Vector2 Position;
-
-        public Vector2 Speed;
-
-        public Rectangle Bounds;
+        public Rectangle Bounds { get; set; }
+        public Vector2 Position { get; set; }
+        public Vector2 Velocity { get; set; }
 
         public Rectangle WorldBounds => Bounds.Translate(Position);
 
-        public CollisionTypes Type = CollisionTypes.None;
+        public CollisionTypes Type { get; set; } = CollisionTypes.None;
 
-        public float GravityScale = 1f;
+        public float GravityScale { get; set; } = 1f;
 
-        public bool IsTangible = true;
+        public bool IsTangible { get; set; } = true;
 
-        public bool IsCollidable = true;
+        public bool IsCollidable { get; set; } = true;
 
-        public ushort CategoryBits = 0x0001;
+        public ushort CategoryBits { get; set; } = 0x0001;
 
-        public ushort MaskBits = 0xFFFF;
+        public ushort MaskBits { get; set; } = 0xFFFF;
 
-        public object UserData;
+        public object? UserData { get; set; }
 
-        public PhysicWorld World { get; internal set; }
+        public PhysicWorld? World { get; internal set; }
 
         public PhysicSensorCollection Sensors { get; }
 
-        public event BodyCollisionEventHandler BodyCollisionEvent;
-
-        public event TilemapCollisionEventHandler TileMapCollisionEvent;
+        public event BodyCollisionEventHandler? BodyCollisionEvent;
+        public event TilemapCollisionEventHandler? TileMapCollisionEvent;
 
         public PhysicBody(Rectangle bounds)
         {
@@ -58,6 +55,7 @@ namespace MegamanX.Physics
         {
             Bounds = bounds;
             Position = position;
+            Sensors = new PhysicSensorCollection(this);
         }
 
         internal void TileMapCollision(TileMapCollisionInfo info)

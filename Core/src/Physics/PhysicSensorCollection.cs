@@ -4,20 +4,13 @@ using System.Collections.Generic;
 
 namespace MegamanX.Physics
 {
-    public class PhysicSensorCollection : ICollection<PhysicSensor>
+    public class PhysicSensorCollection(IPhysicSensorParent owner) : ICollection<PhysicSensor>
     {
-        private List<PhysicSensor> sensors = new List<PhysicSensor>();
+        private readonly List<PhysicSensor> sensors = [];
 
         public int Count => sensors.Count;
-
         public bool IsReadOnly => false;
-
-        public IPhysicSensorParent Parent { get; }
-
-        public PhysicSensorCollection(IPhysicSensorParent owner)
-        {
-            Parent = owner;
-        }
+        public IPhysicSensorParent Parent { get; } = owner;
 
         public void Add(PhysicSensor item)
         {
@@ -33,7 +26,7 @@ namespace MegamanX.Physics
 
         public void Clear()
         {
-            foreach (var sensor in sensors)
+            foreach (PhysicSensor sensor in sensors)
             {
                 sensor.Parent = null;
             }
