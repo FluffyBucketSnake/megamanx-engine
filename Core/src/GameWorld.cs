@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using MegamanX.Components;
+using MegamanX.Graphics;
 using MegamanX.Map;
 using MegamanX.Physics;
 using Microsoft.Xna.Framework;
@@ -30,6 +31,7 @@ namespace MegamanX
                 Entity entity = entities[i];
                 entity.Update(gameTime);
             }
+            PhysicWorld.Update(gameTime);
         }
 
         public void Draw(GameTime gameTime, SpriteBatch spriteBatch)
@@ -40,6 +42,7 @@ namespace MegamanX
                 blendState: BlendState.AlphaBlend);
             RenderTileMap(spriteBatch);
             RenderEntities(gameTime, spriteBatch);
+            RenderDebug(gameTime, spriteBatch);
             spriteBatch.End();
         }
 
@@ -68,6 +71,14 @@ namespace MegamanX
             {
                 Entity entity = entities[i];
                 entity.Draw(gameTime, spriteBatch);
+            }
+        }
+
+        private void RenderDebug(GameTime gameTime, SpriteBatch spriteBatch)
+        {
+            foreach (PhysicBody body in PhysicWorld.Bodies)
+            {
+                spriteBatch.Draw(Texture2DPrefabs.WhitePixel, body.WorldBounds, new Color(Color.Green, 0.5f));
             }
         }
     }
