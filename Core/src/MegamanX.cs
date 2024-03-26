@@ -1,5 +1,6 @@
 ﻿using MegamanX.Components;
 using MegamanX.GameStates;
+using MegamanX.Graphics;
 using MegamanX.Input.Keyboard;
 using MegamanX.Map;
 using Microsoft.Xna.Framework;
@@ -33,6 +34,8 @@ namespace MegamanX
 
         protected override void LoadContent()
         {
+            Texture2DPrefabs.Initialize(GraphicsDevice);
+
             TileMap tileMap = BuildBoxTileMap(Content);
 
             GameWorld gameWorld = new(tileMap);
