@@ -58,6 +58,18 @@ namespace MegamanX.Physics
             Sensors = new PhysicSensorCollection(this);
         }
 
+        public void Move(Vector2 delta)
+        {
+            if (World != null)
+            {
+                World.Translate(this, delta);
+            }
+            else
+            {
+                Position += delta;
+            }
+        }
+
         internal void TileMapCollision(TileMapCollisionInfo info)
         {
             TileMapCollisionEvent?.Invoke(info);
