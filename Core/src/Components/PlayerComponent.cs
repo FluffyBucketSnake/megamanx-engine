@@ -10,20 +10,27 @@ using Microsoft.Xna.Framework.Input;
 
 namespace MegamanX.Components
 {
-    public enum PlayerInput
-    {
-        Left,
-        Right,
-        Jump,
-        Dash,
-        Fire
-    }
+    public record struct PlayerInputFrame(bool Left, bool Right, bool Jump, bool Dash, bool Fire);
 
-    public record struct PlayerInputData(bool Left, bool Right, bool Jump, bool Dash, bool Fire)
+    public class PlayerInput(IKeyboardDevice keyboard)
     {
-        public readonly bool IsMovingLeft => Left && !Right;
-        public readonly bool IsMovingRight => !Left && Right;
-        public readonly bool IsMoving => IsMovingLeft || IsMovingRight;
+        private const Keys LEFT_KEY = Keys.Left;
+        private const Keys RIGHT_KEY = Keys.Right;
+        private const Keys JUMP_KEY = Keys.Z;
+        private const Keys DASH_KEY = Keys.X;
+        // private const Keys FIRE_KEY = Keys.A;
+
+        public bool Left => keyboard.IsKeyDown(LEFT_KEY);
+        public bool Right => keyboard.IsKeyDown(RIGHT_KEY);
+        public bool Jump => keyboard.IsKeyDown(JUMP_KEY);
+        public bool Dash => keyboard.IsKeyDown(DASH_KEY);
+
+        public bool IsMovingLeft => keyboard.IsKeyDown(LEFT_KEY) && !keyboard.IsKeyDown(RIGHT_KEY);
+        public bool IsMovingRight => !keyboard.IsKeyDown(LEFT_KEY) && keyboard.IsKeyDown(RIGHT_KEY);
+        public bool IsMoving => IsMovingLeft || IsMovingRight;
+
+        public bool ShouldJump => keyboard.IsKeyPressed(JUMP_KEY);
+        public bool ShouldDash => keyboard.IsKeyPressed(DASH_KEY);
     }
 
     public enum PlayerState
@@ -31,7 +38,8 @@ namespace MegamanX.Components
         Standing,
         Walking,
         Jumping,
-        Falling
+        Falling,
+        Dashing,
     }
 
     public record PlayerContent(
@@ -142,7 +150,7 @@ namespace MegamanX.Components
                 new SpriteFrame(334, 255, 29, 45),
                 new SpriteFrame(372, 225, 31, 45),
             ];
-            SpriteSheet spriteSheet = new(texture, frames);
+            SpriteSheet spriteSheet = new(texture, frames) { Origin = new(16, 16) };
 
             SoundEffect jumpSfx = content.Load<SoundEffect>("sfx/x-jump");
             SoundEffect landSfx = content.Load<SoundEffect>("sfx/x-land");
@@ -167,8 +175,13 @@ namespace MegamanX.Components
 
     public class PlayerComponent : IComponent
     {
+        public const int DASH_DURATION = 500;
+        public const float WALKING_SPEED = 0.088125f;
+        public const float JUMP_SPEED = 0.319453125f;
+        public const float DASHING_SPEED = 0.207421875f;
+
         public Sprite Sprite { get; set; }
-        public PhysicBody Body { get; } = new PhysicBody(new Rectangle(-8, -16, 16, 32));
+        public PhysicBody Body => physicsBody.Body;
 
         public PhysicSensor GroundSensor { get; }
         public PhysicSensor CeilingSensor { get; }
@@ -178,17 +191,18 @@ namespace MegamanX.Components
         public PhysicSensor RightWalljumpSensor { get; }
 
         public PlayerContent Content { get; }
-        public PlayerInputData CurrentInput => currentInput;
+        public PlayerInput Input { get; private set; }
 
         public PlayerState State { get; private set; } = PlayerState.Standing;
         public Vector2 Position { get => transform.Position; set => transform.Position = value; }
         public bool IsLeft { get; set; }
 
-        private PlayerInputData currentInput;
-
         private readonly LivingComponent living;
         private readonly TransformComponent transform;
-        private readonly PhysicsBodyComponent physicsBody;
+        private readonly PhysicBodyComponent physicsBody;
+
+        private bool isDashing;
+        private int dashTimer;
 
         public PlayerComponent(Entity entity, IKeyboardDevice keyboard, PlayerContent content)
         {
@@ -197,13 +211,12 @@ namespace MegamanX.Components
             // Bounds = new Rectangle(-8, -16, 16, 32);
             Content = content;
 
-            keyboard.KeyDown += OnKeyboardKeyDown;
-            keyboard.KeyUp += OnKeyboardKeyUp;
+            Input = new PlayerInput(keyboard);
 
             transform = entity.GetComponent<TransformComponent>();
             living = entity.GetComponent<LivingComponent>();
             living.Damaged += OnDamage;
-            physicsBody = entity.GetComponent<PhysicsBodyComponent>();
+            physicsBody = entity.GetComponent<PhysicBodyComponent>();
 
             Sprite = new Sprite(content.SpriteSheet);
 
@@ -220,171 +233,108 @@ namespace MegamanX.Components
             RightWalljumpSensor = physicsBody.CreateSensor(new Rectangle(16, 0, 7, 32));
         }
 
-        private void OnKeyboardKeyDown(KeyboardEventArgs args)
-        {
-            switch (args.Key)
-            {
-                case Keys.Left:
-                    currentInput.Left = true;
-                    break;
-                case Keys.Right:
-                    currentInput.Right = true;
-                    break;
-                case Keys.Z:
-                    currentInput.Jump = true;
-                    break;
-                case Keys.A:
-                    currentInput.Fire = true;
-                    break;
-                case Keys.X:
-                    currentInput.Dash = true;
-                    break;
-            }
-        }
-
-        private void OnKeyboardKeyUp(KeyboardEventArgs args)
-        {
-            switch (args.Key)
-            {
-                case Keys.Left:
-                    currentInput.Left = false;
-                    break;
-                case Keys.Right:
-                    currentInput.Right = false;
-                    break;
-                case Keys.Z:
-                    currentInput.Jump = false;
-                    break;
-                case Keys.A:
-                    currentInput.Fire = false;
-                    break;
-                case Keys.X:
-                    currentInput.Dash = false;
-                    break;
-            }
-        }
-
-        // public void LoadContent(ContentManager content)
-        // {
-        //     //Load sprites.
-        //     BuildPlayerSprites(content);
-        //     BuildBusterSprites(content);
-        //
-        //     //Load sound effects.
-        //
-        //     CurrentWeapon.ShootingSoundEffects[0] = content.Load<SoundEffect>("sfx/x-shoot0");
-        //     CurrentWeapon.ShootingSoundEffects[1] = content.Load<SoundEffect>("sfx/x-shoot1");
-        //     CurrentWeapon.ShootingSoundEffects[2] = content.Load<SoundEffect>("sfx/x-shoot2");
-        //
-        //     //Create main player controller.
-        //     AnimationController = new PlayerAnimationController(this);
-        //     AnimationController.State = PlayerAnimationStates.Idle;
-        //
-        // }
-
-        // private void BuildPlayerSprites(ContentManager content)
-        // {
-        //     // Animations
-        //     playerSheet.Animations.Add(new SpriteAnimation("idle", 0) { IsLooping = true });
-        //     playerSheet.Animations.Add(new SpriteAnimation("idle-blink1",
-        //     1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1));
-        //     playerSheet.Animations.Add(new SpriteAnimation("idle-blink2",
-        //     1, 1, 1, 1, 2, 2, 2, 2, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 1, 1, 1, 1));
-        //
-        //     playerSheet.Animations.Add(new SpriteAnimation("shoot",
-        //     3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4));
-        //
-        //     playerSheet.Animations.Add(new SpriteAnimation("step",
-        //     5, 5, 5, 5, 5));
-        //     playerSheet.Animations.Add(new SpriteAnimation("walk",
-        //     6, 7, 7, 8, 8, 8, 9, 9, 9, 10, 10, 10, 11, 11, 12, 12, 13, 13, 13, 14, 14, 14, 15, 15, 15)
-        //     { IsLooping = true });
-        //     playerSheet.Animations.Add(new SpriteAnimation("walk-shoot",
-        //     16, 17, 17, 18, 18, 18, 19, 19, 19, 20, 20, 20, 21, 21, 22, 22, 23, 23, 23, 24, 24, 24, 25, 25, 25)
-        //     { IsLooping = true });
-        //
-        //     playerSheet.Animations.Add(new SpriteAnimation("jump-intro",
-        //     26, 26, 26, 27, 27, 27, 27));
-        //     playerSheet.Animations.Add(new SpriteAnimation("jump",
-        //     28));
-        //     playerSheet.Animations.Add(new SpriteAnimation("fall-intro",
-        //     28, 28, 29, 29, 29));
-        //     playerSheet.Animations.Add(new SpriteAnimation("fall",
-        //     30));
-        //     playerSheet.Animations.Add(new SpriteAnimation("land",
-        //     30, 31, 31, 32));
-        //
-        //     playerSheet.Animations.Add(new SpriteAnimation("jump-intro-shoot",
-        //     33, 33, 33, 34, 34, 34, 34));
-        //     playerSheet.Animations.Add(new SpriteAnimation("jump-shoot",
-        //     35));
-        //     playerSheet.Animations.Add(new SpriteAnimation("fall-intro-shoot",
-        //     35, 35, 36, 36, 36));
-        //     playerSheet.Animations.Add(new SpriteAnimation("fall-shoot",
-        //     37));
-        //     playerSheet.Animations.Add(new SpriteAnimation("land-shoot",
-        //     37, 38, 38, 39));
-        //
-        //     playerSheet.Animations.Add(new SpriteAnimation("dash-intro",
-        //     40, 40, 40));
-        //     playerSheet.Animations.Add(new SpriteAnimation("dash",
-        //     41));
-        //     playerSheet.Animations.Add(new SpriteAnimation("dash-outro",
-        //     41, 40, 40, 40, 40, 40, 40, 40, 40));
-        //     playerSheet.Animations.Add(new SpriteAnimation("dash-intro-shoot",
-        //     42, 42, 42));
-        //     playerSheet.Animations.Add(new SpriteAnimation("dash-shoot",
-        //     43));
-        //     playerSheet.Animations.Add(new SpriteAnimation("dash-outro-shoot",
-        //     43, 42, 42, 42, 42, 42, 42, 42, 42));
-        //
-        //     playerSheet.Animations.Add(new SpriteAnimation("wallslide-intro",
-        //     44, 44, 44, 44, 44, 45, 45, 45, 45, 45, 45));
-        //     playerSheet.Animations.Add(new SpriteAnimation("wallslide",
-        //     46));
-        //     playerSheet.Animations.Add(new SpriteAnimation("walljump",
-        //     47, 47, 47, 48));
-        //
-        //     playerSheet.Animations.Add(new SpriteAnimation("wallslide-intro-shoot",
-        //     49, 49, 49, 49, 49, 50, 50, 50, 50, 50, 50));
-        //     playerSheet.Animations.Add(new SpriteAnimation("wallslide-shoot",
-        //     51));
-        //     playerSheet.Animations.Add(new SpriteAnimation("walljump-shoot",
-        //     52, 52, 52, 53));
-        //
-        //     playerSheet.Animations.Add(new SpriteAnimation("hurt",
-        //     54, 54, 54, 54, 55, 56, 56, 57, 57, 58, 58, 59, 59, 60, 60, 61, 61, 62, 62, 62, 62, 63, 55, 55, 55, 55, 55, 55, 55, 55, 54, 54));
-        // }
-
-        // private void BuildBusterSprites(ContentManager content)
-        // {
-        //     CurrentWeapon.ProjectileSpriteSheets[0] = new SpriteSheet(content.Load<Texture2D>("textures/projectile-default0"), 1)
-        //     {
-        //         Origin = new Vector2(4, 3)
-        //     };
-        //     CurrentWeapon.ProjectileSpriteSheets[0].Frames[0] = new SpriteFrame(new Rectangle(0, 4, 8, 6));
-        //
-        //     CurrentWeapon.ProjectileSpriteSheets[1] = new SpriteSheet(content.Load<Texture2D>("textures/projectile-default1"), 3)
-        //     {
-        //         Origin = new Vector2(8, 6)
-        //     };
-        //     CurrentWeapon.ProjectileSpriteSheets[1].Frames[0] = new SpriteFrame(new Rectangle(100, 1, 40, 19), new Thickness(-5, -1, -2, -23));
-        //     CurrentWeapon.ProjectileSpriteSheets[1].Frames[1] = new SpriteFrame(new Rectangle(140, 1, 36, 22), new Thickness(-4, 0, -6, -20));
-        //     CurrentWeapon.ProjectileSpriteSheets[1].Frames[2] = new SpriteFrame(new Rectangle(176, 6, 38, 12), new Thickness(0, 0, 0, -23));
-        //     CurrentWeapon.ProjectileSpriteSheets[1].Animations.Add(new SpriteAnimation("default", 2, 0, 0, 2, 1, 1) { IsLooping = true });
-        //
-        //     CurrentWeapon.ProjectileSpriteSheets[2] = new SpriteSheet(content.Load<Texture2D>("textures/projectile-default2"), 3)
-        //     {
-        //         Origin = new Vector2(12)
-        //     };
-        //     CurrentWeapon.ProjectileSpriteSheets[2].Frames[0] = new SpriteFrame(new Rectangle(37, 0, 32, 32), new Thickness(-4, -8, -4, 0));
-        //     CurrentWeapon.ProjectileSpriteSheets[2].Frames[1] = new SpriteFrame(new Rectangle(69, 0, 40, 32), new Thickness(-3, -9, -4, -7));
-        //     CurrentWeapon.ProjectileSpriteSheets[2].Frames[2] = new SpriteFrame(new Rectangle(109, 4, 27, 24));
-        //     CurrentWeapon.ProjectileSpriteSheets[2].Animations.Add(new SpriteAnimation("default", 0, 0, 2, 1, 1, 2) { IsLooping = true });
-        // }
-
         void IComponent.Update(GameTime gameTime)
         {
+            switch (State)
+            {
+                case PlayerState.Standing:
+                    isDashing = false;
+                    if (Input.IsMoving)
+                    {
+                        State = PlayerState.Walking;
+                    }
+                    break;
+                case PlayerState.Walking:
+                    isDashing = false;
+                    if (!Input.IsMoving)
+                    {
+                        State = PlayerState.Standing;
+                    }
+                    break;
+                case PlayerState.Jumping:
+                    if (Body.Velocity.Y >= 0)
+                    {
+                        State = PlayerState.Falling;
+                    }
+                    break;
+                case PlayerState.Falling:
+                    if (GroundSensor)
+                    {
+                        State = Input.IsMoving ? PlayerState.Walking : PlayerState.Standing;
+                        Content.LandSoundEffect.Play();
+                    }
+                    break;
+                case PlayerState.Dashing:
+                    dashTimer -= gameTime.ElapsedGameTime.Milliseconds;
+                    if (dashTimer <= 0)
+                    {
+                        State = Input.IsMoving ? PlayerState.Walking : PlayerState.Standing;
+                    }
+
+                    if (IsLeft)
+                    {
+                        Body.Move(new Vector2(-DASHING_SPEED *
+                            gameTime.ElapsedGameTime.Milliseconds, 0));
+                        if (Input.Right)
+                        {
+                            State = Input.IsMoving ? PlayerState.Walking : PlayerState.Standing;
+
+                        }
+                    }
+                    else
+                    {
+                        Body.Move(new Vector2(DASHING_SPEED *
+      gameTime.ElapsedGameTime.Milliseconds, 0));
+                        if (Input.Left)
+                        {
+                            State = Input.IsMoving ? PlayerState.Walking : PlayerState.Standing;
+
+                        }
+                    }
+
+                    if (!Input.Dash)
+                    {
+                        State = Input.IsMoving ? PlayerState.Walking : PlayerState.Standing;
+                    }
+                    break;
+            }
+
+            if (CanStrafe)
+            {
+                float speed = isDashing ? DASHING_SPEED : WALKING_SPEED;
+                if (Input.IsMovingLeft)
+                {
+                    IsLeft = true;
+                    Body.Move(new Vector2(-speed *
+                        gameTime.ElapsedGameTime.Milliseconds, 0));
+                }
+                else if (Input.IsMovingRight)
+                {
+                    IsLeft = false;
+                    Body.Move(new Vector2(speed *
+                        gameTime.ElapsedGameTime.Milliseconds, 0));
+                }
+            }
+
+            if (CanDash && Input.ShouldDash)
+            {
+                State = PlayerState.Dashing;
+                Content.DashSoundEffect.Play();
+                dashTimer = DASH_DURATION;
+                isDashing = true;
+            }
+
+            if (CanFall && !GroundSensor)
+            {
+                State = PlayerState.Falling;
+            }
+
+            if (CanJump && Input.ShouldJump)
+            {
+                State = PlayerState.Jumping;
+                Content.JumpSoundEffect.Play();
+                Body.Velocity -= new Vector2(0, JUMP_SPEED);
+            }
         }
 
         void IComponent.Draw(GameTime gameTime, SpriteBatch spriteBatch)
@@ -415,5 +365,10 @@ namespace MegamanX.Components
                 }
             }
         }
+
+        private bool CanStrafe => State is not PlayerState.Dashing;
+        private bool CanFall => State is PlayerState.Standing or PlayerState.Walking or PlayerState.Dashing;
+        private bool CanJump => State is PlayerState.Standing or PlayerState.Walking or PlayerState.Dashing;
+        private bool CanDash => State is PlayerState.Standing or PlayerState.Walking;
     }
 }
