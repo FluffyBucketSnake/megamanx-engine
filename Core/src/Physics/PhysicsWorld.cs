@@ -6,22 +6,28 @@ using static System.Math;
 
 namespace MegamanX.Physics
 {
-    public class PhysicWorld : IPhysicSensorParent
+    public class PhysicWorld(TileMap tiles) : IPhysicSensorParent
     {
         public Vector2 Gravity { get; set; } = new Vector2(0, 0.0009f);
 
-        public PhysicBodyCollection Bodies { get; }
-        public PhysicSensorCollection Sensors { get; }
+        public IEnumerable<PhysicBody> Bodies => bodies.AsReadOnly();
+        public IEnumerable<PhysicSensor> Sensors => sensors.AsReadOnly();
 
-        public TileMap Tiles { get; set; }
+        public TileMap Tiles { get => tiles; set => tiles = value; }
 
+        private readonly List<PhysicBody> bodies = [];
+        private readonly List<PhysicSensor> sensors = [];
         private readonly Dictionary<PhysicBody, Vector2> dirtyBodies = [];
 
-        public PhysicWorld(TileMap tiles)
+        public void AddBody(PhysicBody body)
         {
-            Tiles = tiles;
-            Bodies = new PhysicBodyCollection(this);
-            Sensors = new PhysicSensorCollection(this);
+            body.World = this;
+            bodies.Add(body);
+        }
+
+        public void AddSensor(PhysicSensor sensor)
+        {
+            sensors.Add(sensor);
         }
 
         public void Translate(PhysicBody body, Vector2 translation)
@@ -84,14 +90,14 @@ namespace MegamanX.Physics
 
                 if (body.IsTangible)
                 {
-                    collided = HandleTileCollisionY(body, translation.Y, out penetration.Y);
-                }
-                body.Position += new Vector2(0, translation.Y - penetration.Y);
-                if (body.IsTangible)
-                {
-                    collided |= HandleTileCollisionX(body, translation.X, out penetration.X);
+                    collided = HandleTileCollisionX(body, translation.X, out penetration.X);
                 }
                 body.Position += new Vector2(translation.X - penetration.X, 0);
+                if (body.IsTangible)
+                {
+                    collided |= HandleTileCollisionY(body, translation.Y, out penetration.Y);
+                }
+                body.Position += new Vector2(0, translation.Y - penetration.Y);
 
                 //Tilemap collision response.
                 if (collided)
@@ -183,7 +189,7 @@ namespace MegamanX.Physics
                     }
                 }
             }
-            else if (deltaX < 0)
+            else if (deltaX <= 0)
             {
                 if (Tiles.QueryWallLeft(body.WorldBounds, out int wallX))
                 {

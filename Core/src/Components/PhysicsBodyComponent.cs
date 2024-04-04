@@ -26,13 +26,13 @@ namespace MegamanX.Components
                 GravityScale = 1,
                 Position = transformComponent.Position
             };
-            PhysicWorld.Bodies.Add(Body);
+            PhysicWorld.AddBody(Body);
         }
 
         public PhysicSensor CreateSensor(Rectangle bounds)
         {
             PhysicSensor sensor = new(bounds);
-            Body.Sensors.Add(sensor);
+            Body.AddSensor(sensor);
             return sensor;
         }
 

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 
 namespace MegamanX.Physics
@@ -33,29 +34,34 @@ namespace MegamanX.Physics
 
         public PhysicWorld? World { get; internal set; }
 
-        public PhysicSensorCollection Sensors { get; }
+        public IEnumerable<PhysicSensor> Sensors => sensors.AsReadOnly();
 
         public event BodyCollisionEventHandler? BodyCollisionEvent;
         public event TilemapCollisionEventHandler? TileMapCollisionEvent;
 
+        private readonly List<PhysicSensor> sensors = [];
+
         public PhysicBody(Rectangle bounds)
         {
             Bounds = bounds;
-            Sensors = new PhysicSensorCollection(this);
         }
 
         public PhysicBody(Rectangle bounds, CollisionTypes type)
         {
             Bounds = bounds;
             Type = type;
-            Sensors = new PhysicSensorCollection(this);
         }
 
         public PhysicBody(Rectangle bounds, Vector2 position)
         {
             Bounds = bounds;
             Position = position;
-            Sensors = new PhysicSensorCollection(this);
+        }
+
+        public void AddSensor(PhysicSensor sensor)
+        {
+            sensor.Parent = this;
+            sensors.Add(sensor);
         }
 
         public void Move(Vector2 delta)
