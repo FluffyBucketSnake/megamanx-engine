@@ -233,6 +233,7 @@ namespace MegamanX.Components
             RightWalljumpSensor = physicsBody.CreateSensor(new Rectangle(16, 0, 7, 32));
         }
 
+        int? IComponent.UpdatePriority => 0;
         void IComponent.Update(GameTime gameTime)
         {
             switch (State)
@@ -337,6 +338,7 @@ namespace MegamanX.Components
             }
         }
 
+        int? IComponent.DrawPriority => 0;
         void IComponent.Draw(GameTime gameTime, SpriteBatch spriteBatch)
         {
             //Draw sprite.

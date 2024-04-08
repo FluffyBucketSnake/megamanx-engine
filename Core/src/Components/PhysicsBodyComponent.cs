@@ -36,7 +36,8 @@ namespace MegamanX.Components
             return sensor;
         }
 
-        void IComponent.Update(GameTime gameTime)
+        int? IComponent.PostUpdatePriority => 0;
+        void IComponent.PostUpdate(GameTime gameTime)
         {
             transformComponent.Position = Body.Position;
         }

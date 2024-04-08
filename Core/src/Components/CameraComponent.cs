@@ -22,6 +22,7 @@ namespace MegamanX.Components
             world.CurrentCamera = this;
         }
 
+        int? IComponent.UpdatePriority => -20;
         void IComponent.Update(GameTime gameTime)
         {
             foreach (Entity entity in world.Entities)

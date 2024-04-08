@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using MegamanX.Components;
@@ -26,12 +25,15 @@ namespace MegamanX
 
         public void Update(GameTime gameTime)
         {
-            for (int i = 0; i < entities.Count; i++)
+            foreach (Entity entity in entities)
             {
-                Entity entity = entities[i];
                 entity.Update(gameTime);
             }
             PhysicWorld.Update(gameTime);
+            foreach (Entity entity in entities)
+            {
+                entity.PostUpdate(gameTime);
+            }
         }
 
         public void Draw(GameTime gameTime, SpriteBatch spriteBatch)
@@ -67,9 +69,8 @@ namespace MegamanX
 
         private void RenderEntities(GameTime gameTime, SpriteBatch spriteBatch)
         {
-            for (int i = 0; i < entities.Count; i++)
+            foreach (Entity entity in entities)
             {
-                Entity entity = entities[i];
                 entity.Draw(gameTime, spriteBatch);
             }
         }
