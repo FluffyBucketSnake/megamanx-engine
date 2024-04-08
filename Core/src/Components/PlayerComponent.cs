@@ -40,6 +40,8 @@ namespace MegamanX.Components
         Jumping,
         Falling,
         Dashing,
+        Wallsliding,
+        Walljumping,
     }
 
     public record PlayerContent(
@@ -179,6 +181,12 @@ namespace MegamanX.Components
         public const float WALKING_SPEED = 0.088125f;
         public const float JUMP_SPEED = 0.319453125f;
         public const float DASHING_SPEED = 0.207421875f;
+        public const float WALLSLIDING_SPEED = 0.12f;
+
+        public const int DASH_INPUT_BUFFER_TIME = 66;
+
+        public const int WALLJUMP_DURATION = 178;
+        public const int WALLKICK_DURATION = 66;
 
         public Sprite Sprite { get; set; }
         public PhysicBody Body => physicsBody.Body;
@@ -203,6 +211,8 @@ namespace MegamanX.Components
 
         private bool isDashing;
         private int dashTimer;
+        private int dashInputTimer;
+        private int walljumpTimer;
 
         public PlayerComponent(Entity entity, IKeyboardDevice keyboard, PlayerContent content)
         {
@@ -236,6 +246,11 @@ namespace MegamanX.Components
         int? IComponent.UpdatePriority => 0;
         void IComponent.Update(GameTime gameTime)
         {
+            if (dashInputTimer > 0)
+            {
+                dashInputTimer -= gameTime.ElapsedGameTime.Milliseconds;
+            }
+
             switch (State)
             {
                 case PlayerState.Standing:
@@ -263,6 +278,12 @@ namespace MegamanX.Components
                     {
                         State = Input.IsMoving ? PlayerState.Walking : PlayerState.Standing;
                         Content.LandSoundEffect.Play();
+                    }
+                    if ((Input.Left && LeftWallSensor) || (Input.Right && RightWallSensor))
+                    {
+                        Body.GravityScale = 0;
+                        Body.Velocity = Vector2.Zero;
+                        State = PlayerState.Wallsliding;
                     }
                     break;
                 case PlayerState.Dashing:
@@ -298,6 +319,64 @@ namespace MegamanX.Components
                         State = Input.IsMoving ? PlayerState.Walking : PlayerState.Standing;
                     }
                     break;
+                case PlayerState.Wallsliding:
+                    isDashing = dashInputTimer > 0;
+
+                    if ((IsLeft && !Input.IsMovingLeft) || (!IsLeft && !Input.IsMovingRight))
+                    {
+                        isDashing = false;
+                        State = PlayerState.Falling;
+                    }
+                    else if ((IsLeft && !LeftWallSensor) || (!IsLeft && !RightWallSensor))
+                    {
+                        State = PlayerState.Falling;
+                    }
+
+                    if (GroundSensor)
+                    {
+                        State = PlayerState.Standing;
+                    }
+
+                    Body.Move(new Vector2(0, WALLSLIDING_SPEED * gameTime.ElapsedGameTime.Milliseconds));
+
+                    if (State != PlayerState.Wallsliding)
+                    {
+                        Body.GravityScale = 1;
+                    }
+                    break;
+                case PlayerState.Walljumping:
+                    bool isKicking = walljumpTimer <= WALLKICK_DURATION;
+
+                    walljumpTimer += gameTime.ElapsedGameTime.Milliseconds;
+
+                    if (walljumpTimer > WALLKICK_DURATION && isKicking)
+                    {
+                        Body.GravityScale = 1;
+                        float direction = IsLeft ? 1 : -1;
+                        float speed = isDashing ? DASHING_SPEED : WALKING_SPEED;
+                        Body.Velocity = new Vector2(direction * speed, -JUMP_SPEED);
+                    }
+
+                    if (CeilingSensor)
+                    {
+                        State = PlayerState.Falling;
+                    }
+                    else if (walljumpTimer > WALLJUMP_DURATION)
+                    {
+                        State = PlayerState.Jumping;
+                    }
+
+                    if (State != PlayerState.Walljumping)
+                    {
+                        Body.GravityScale = 1;
+                        Body.Velocity = new Vector2(0, Body.Velocity.Y);
+                    }
+                    break;
+            }
+
+            if (Input.ShouldDash)
+            {
+                dashInputTimer = DASH_INPUT_BUFFER_TIME;
             }
 
             if (CanStrafe)
@@ -319,10 +398,10 @@ namespace MegamanX.Components
 
             if (CanDash && Input.ShouldDash)
             {
+                isDashing = true;
+                dashTimer = DASH_DURATION;
                 State = PlayerState.Dashing;
                 Content.DashSoundEffect.Play();
-                dashTimer = DASH_DURATION;
-                isDashing = true;
             }
 
             if (CanFall && !GroundSensor)
@@ -330,11 +409,20 @@ namespace MegamanX.Components
                 State = PlayerState.Falling;
             }
 
+            // TODO: check if either MMX 1/2/3 has a coyote timer and implement it if so.
             if (CanJump && Input.ShouldJump)
             {
+                Body.Velocity -= new Vector2(0, JUMP_SPEED);
                 State = PlayerState.Jumping;
                 Content.JumpSoundEffect.Play();
-                Body.Velocity -= new Vector2(0, JUMP_SPEED);
+            }
+            else if (CanWalljump && Input.ShouldJump)
+            {
+                Body.Velocity = Vector2.Zero;
+                Body.GravityScale = 0;
+                walljumpTimer = 0;
+                State = PlayerState.Walljumping;
+                Content.JumpSoundEffect.Play();
             }
         }
 
@@ -368,9 +456,10 @@ namespace MegamanX.Components
             }
         }
 
-        private bool CanStrafe => State is not PlayerState.Dashing;
+        private bool CanStrafe => State is PlayerState.Walking or PlayerState.Jumping or PlayerState.Falling;
         private bool CanFall => State is PlayerState.Standing or PlayerState.Walking or PlayerState.Dashing;
         private bool CanJump => State is PlayerState.Standing or PlayerState.Walking or PlayerState.Dashing;
         private bool CanDash => State is PlayerState.Standing or PlayerState.Walking;
+        private bool CanWalljump => State is PlayerState.Wallsliding or PlayerState.Jumping && ((IsLeft && LeftWallSensor) || (!IsLeft && RightWallSensor));
     }
 }
