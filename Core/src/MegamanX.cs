@@ -45,11 +45,13 @@ namespace MegamanX
             camera.AddComponent(new CameraComponent(gameWorld, camera));
             gameWorld.AddEntity(camera);
 
+            PlayerContent playerContent = PlayerContent.LoadDefault(Content);
             Entity player = new();
             player.AddComponent(new TransformComponent(new Vector2(128, 114)));
+            player.AddComponent(new SpriteRendererComponent(player, playerContent.CreateSprite()));
             player.AddComponent(new LivingComponent(player, 20, 20));
             player.AddComponent(new PhysicBodyComponent(player, gameWorld.PhysicWorld, new(-8, -16, 16, 32)));
-            player.AddComponent(new PlayerComponent(player, keyboard, PlayerContent.LoadDefault(Content)));
+            player.AddComponent(new PlayerComponent(player, keyboard, playerContent));
             gameWorld.AddEntity(player);
 
             PlayState playState = new(GraphicsDevice, Content, gameWorld)

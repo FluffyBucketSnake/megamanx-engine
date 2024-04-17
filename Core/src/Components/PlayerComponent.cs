@@ -173,6 +173,11 @@ namespace MegamanX.Components
                 ChargingLoopSoundEffect: chargingLoopSfx
             );
         }
+
+        public Sprite CreateSprite()
+        {
+            return new(SpriteSheet);
+        }
     }
 
     public class PlayerComponent : IComponent
@@ -188,7 +193,7 @@ namespace MegamanX.Components
         public const int WALLJUMP_DURATION = 178;
         public const int WALLKICK_DURATION = 66;
 
-        public Sprite Sprite { get; set; }
+        public Sprite Sprite => spriteRenderer.Sprite;
         public PhysicBody Body => physicsBody.Body;
 
         public PhysicSensor GroundSensor { get; }
@@ -208,6 +213,7 @@ namespace MegamanX.Components
         private readonly LivingComponent living;
         private readonly TransformComponent transform;
         private readonly PhysicBodyComponent physicsBody;
+        private readonly SpriteRendererComponent spriteRenderer;
 
         private bool isDashing;
         private int dashTimer;
@@ -227,8 +233,7 @@ namespace MegamanX.Components
             living = entity.GetComponent<LivingComponent>();
             living.Damaged += OnDamage;
             physicsBody = entity.GetComponent<PhysicBodyComponent>();
-
-            Sprite = new Sprite(content.SpriteSheet);
+            spriteRenderer = entity.GetComponent<SpriteRendererComponent>();
 
             // Setup PhysicsBody
             physicsBody.Body.UserData = this;
@@ -429,10 +434,7 @@ namespace MegamanX.Components
         int? IComponent.DrawPriority => 0;
         void IComponent.Draw(GameTime gameTime, SpriteBatch spriteBatch)
         {
-            //Draw sprite.
-            Sprite.Position = Position;
             Sprite.Effects = IsLeft ? SpriteEffects.FlipHorizontally : SpriteEffects.None;
-            Sprite.Draw(spriteBatch);
         }
 
         private void OnDamage(LivingComponent living, Entity _, DamageInfo info)
