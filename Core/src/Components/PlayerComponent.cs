@@ -45,7 +45,7 @@ namespace MegamanX.Components
     }
 
     public record PlayerContent(
-        SpriteSheet SpriteSheet, SoundEffect JumpSoundEffect, SoundEffect LandSoundEffect, SoundEffect DashSoundEffect,
+        SpriteSheet SpriteSheet, SpriteAnimation[] animations, SoundEffect JumpSoundEffect, SoundEffect LandSoundEffect, SoundEffect DashSoundEffect,
         SoundEffect HurtSoundEffect, SoundEffect ChargingIntroSoundEffect, SoundEffect ChargingLoopSoundEffect)
     {
         public static PlayerContent LoadDefault(ContentManager content)
@@ -154,6 +154,69 @@ namespace MegamanX.Components
             ];
             SpriteSheet spriteSheet = new(texture, frames) { Origin = new(16, 16) };
 
+            SpriteAnimation[] animations = [
+              new SpriteAnimation("idle",
+              [0], true),
+              new SpriteAnimation("idle-blink1",
+              [1,1,1,1,2,2,2,2,2,2,2,2,1,1,1,1]),
+              new SpriteAnimation("idle-blink2",
+              [1,1,1,1,2,2,2,2,1,1,1,1,0,0,0,0,1,1,1,1,2,2,2,2,1,1,1,1]),
+              new SpriteAnimation("shoot",
+              [3,3,3,4,4,4,4,4,4,4,4,4,4,4]),
+              new SpriteAnimation("step",
+              [5,5,5,5,5]),
+              new SpriteAnimation("walk",
+              [6,7,7,8,8,8,9,9,9,10,10,10,11,11,12,12,13,13,13,14,14,14,15,15,15],true),
+              new SpriteAnimation("walk-shoot",
+              [16,17,17,18,18,18,19,19,19,20,20,20,21,21,22,22,23,23,23,24,24,24,25,25,25], true),
+              new SpriteAnimation("jump-intro",
+              [26,26,26,27,27,27,27]),
+              new SpriteAnimation("jump",
+              [28]),
+              new SpriteAnimation("fall-intro",
+              [28,28,29,29,29]),
+              new SpriteAnimation("fall",
+              [30]),
+              new SpriteAnimation("land",
+              [30,31,31,32]),
+              new SpriteAnimation("jump-intro-shoot",
+              [33,33,33,34,34,34,34]),
+              new SpriteAnimation("jump-shoot",
+              [35]),
+              new SpriteAnimation("fall-intro-shoot",
+              [35,35,36,36,36]),
+              new SpriteAnimation("fall-shoot",
+              [37]),
+              new SpriteAnimation("land-shoot",
+              [37,38,38,39]),
+              new SpriteAnimation("dash-intro",
+              [40,40,40]),
+              new SpriteAnimation("dash",
+              [41]),
+              new SpriteAnimation("dash-outro",
+              [41,40,40,40,40,40,40,40,40]),
+              new SpriteAnimation("dash-intro-shoot",
+              [42,42,42]),
+              new SpriteAnimation("dash-shoot",
+              [43]),
+              new SpriteAnimation("dash-outro-shoot",
+              [43,42,42,42,42,42,42,42,42]),
+              new SpriteAnimation("wallslide-intro",
+              [44,44,44,44,44,45,45,45,45,45,45]),
+              new SpriteAnimation("wallslide",
+              [46]),
+              new SpriteAnimation("walljump",
+              [47,47,47,48]),
+              new SpriteAnimation("wallslide-intro-shoot",
+              [49,49,49,49,49,50,50,50,50,50,50]),
+              new SpriteAnimation("wallslide-shoot",
+              [51]),
+              new SpriteAnimation("walljump-shoot",
+              [52,52,52,53]),
+              new SpriteAnimation("hurt",
+              [54,54,54,54,55,56,56,57,57,58,58,59,59,60,60,61,61,62,62,62,62,63,55,55,55,55,55,55,55,55,54,54]),
+            ];
+
             SoundEffect jumpSfx = content.Load<SoundEffect>("sfx/x-jump");
             SoundEffect landSfx = content.Load<SoundEffect>("sfx/x-land");
             SoundEffect dashSfx = content.Load<SoundEffect>("sfx/x-dash");
@@ -165,6 +228,7 @@ namespace MegamanX.Components
 
             return new(
                 SpriteSheet: spriteSheet,
+                animations: animations,
                 JumpSoundEffect: jumpSfx,
                 LandSoundEffect: landSfx,
                 DashSoundEffect: dashSfx,
@@ -214,6 +278,7 @@ namespace MegamanX.Components
         private readonly TransformComponent transform;
         private readonly PhysicBodyComponent physicsBody;
         private readonly SpriteRendererComponent spriteRenderer;
+        private readonly SpriteAnimatorComponent animator;
 
         private bool isDashing;
         private int dashTimer;
@@ -234,6 +299,8 @@ namespace MegamanX.Components
             living.Damaged += OnDamage;
             physicsBody = entity.GetComponent<PhysicBodyComponent>();
             spriteRenderer = entity.GetComponent<SpriteRendererComponent>();
+            animator = entity.GetComponent<SpriteAnimatorComponent>();
+            animator.AnimationEnded += OnAnimationEnd;
 
             // Setup PhysicsBody
             physicsBody.Body.UserData = this;
@@ -263,6 +330,7 @@ namespace MegamanX.Components
                     if (Input.IsMoving)
                     {
                         State = PlayerState.Walking;
+                        animator.Play("step");
                     }
                     break;
                 case PlayerState.Walking:
@@ -270,32 +338,46 @@ namespace MegamanX.Components
                     if (!Input.IsMoving)
                     {
                         State = PlayerState.Standing;
+                        animator.Play("idle");
                     }
                     break;
                 case PlayerState.Jumping:
                     if (Body.Velocity.Y >= 0)
                     {
                         State = PlayerState.Falling;
+                        animator.Play("fall-intro");
                     }
                     break;
                 case PlayerState.Falling:
                     if (GroundSensor)
                     {
                         State = Input.IsMoving ? PlayerState.Walking : PlayerState.Standing;
+                        animator.Play("land");
                         Content.LandSoundEffect.Play();
                     }
                     if ((Input.Left && LeftWallSensor) || (Input.Right && RightWallSensor))
                     {
                         Body.GravityScale = 0;
                         Body.Velocity = Vector2.Zero;
+                        IsLeft = !IsLeft;
                         State = PlayerState.Wallsliding;
+                        animator.Play("wallslide-intro");
                     }
                     break;
                 case PlayerState.Dashing:
                     dashTimer -= gameTime.ElapsedGameTime.Milliseconds;
                     if (dashTimer <= 0)
                     {
-                        State = Input.IsMoving ? PlayerState.Walking : PlayerState.Standing;
+                        if (Input.IsMoving)
+                        {
+                            State = PlayerState.Walking;
+                            animator.Play("walk");
+                        }
+                        else
+                        {
+                            State = PlayerState.Standing;
+                            animator.Play("dash-outro");
+                        }
                     }
 
                     if (IsLeft)
@@ -304,8 +386,16 @@ namespace MegamanX.Components
                             gameTime.ElapsedGameTime.Milliseconds, 0));
                         if (Input.Right)
                         {
-                            State = Input.IsMoving ? PlayerState.Walking : PlayerState.Standing;
-
+                            if (Input.IsMoving)
+                            {
+                                State = PlayerState.Walking;
+                                animator.Play("walk");
+                            }
+                            else
+                            {
+                                State = PlayerState.Standing;
+                                animator.Play("dash-outro");
+                            }
                         }
                     }
                     else
@@ -314,27 +404,47 @@ namespace MegamanX.Components
       gameTime.ElapsedGameTime.Milliseconds, 0));
                         if (Input.Left)
                         {
-                            State = Input.IsMoving ? PlayerState.Walking : PlayerState.Standing;
+                            if (Input.IsMoving)
+                            {
+                                State = PlayerState.Walking;
+                                animator.Play("walk");
+                            }
+                            else
+                            {
+                                State = PlayerState.Standing;
+                                animator.Play("dash-outro");
+                            }
 
                         }
                     }
 
                     if (!Input.Dash)
                     {
-                        State = Input.IsMoving ? PlayerState.Walking : PlayerState.Standing;
+                        if (Input.IsMoving)
+                        {
+                            State = PlayerState.Walking;
+                            animator.Play("walk");
+                        }
+                        else
+                        {
+                            State = PlayerState.Standing;
+                            animator.Play("idle");
+                        }
                     }
                     break;
                 case PlayerState.Wallsliding:
                     isDashing = dashInputTimer > 0;
 
-                    if ((IsLeft && !Input.IsMovingLeft) || (!IsLeft && !Input.IsMovingRight))
+                    if ((!IsLeft && !Input.IsMovingLeft) || (IsLeft && !Input.IsMovingRight))
                     {
                         isDashing = false;
                         State = PlayerState.Falling;
+                        animator.Play("fall-intro");
                     }
-                    else if ((IsLeft && !LeftWallSensor) || (!IsLeft && !RightWallSensor))
+                    else if ((!IsLeft && !LeftWallSensor) || (IsLeft && !RightWallSensor))
                     {
                         State = PlayerState.Falling;
+                        animator.Play("fall-intro");
                     }
 
                     if (GroundSensor)
@@ -365,10 +475,12 @@ namespace MegamanX.Components
                     if (CeilingSensor)
                     {
                         State = PlayerState.Falling;
+                        animator.Play("fall-intro");
                     }
                     else if (walljumpTimer > WALLJUMP_DURATION)
                     {
                         State = PlayerState.Jumping;
+                        animator.Play("jump");
                     }
 
                     if (State != PlayerState.Walljumping)
@@ -406,12 +518,14 @@ namespace MegamanX.Components
                 isDashing = true;
                 dashTimer = DASH_DURATION;
                 State = PlayerState.Dashing;
+                animator.Play("dash-intro");
                 Content.DashSoundEffect.Play();
             }
 
             if (CanFall && !GroundSensor)
             {
                 State = PlayerState.Falling;
+                animator.Play("fall-intro");
             }
 
             // TODO: check if either MMX 1/2/3 has a coyote timer and implement it if so.
@@ -419,14 +533,20 @@ namespace MegamanX.Components
             {
                 Body.Velocity -= new Vector2(0, JUMP_SPEED);
                 State = PlayerState.Jumping;
+                animator.Play("jump-intro");
                 Content.JumpSoundEffect.Play();
             }
             else if (CanWalljump && Input.ShouldJump)
             {
+                if (State == PlayerState.Wallsliding)
+                {
+                    IsLeft = !IsLeft;
+                }
                 Body.Velocity = Vector2.Zero;
                 Body.GravityScale = 0;
                 walljumpTimer = 0;
                 State = PlayerState.Walljumping;
+                animator.Play("walljump");
                 Content.JumpSoundEffect.Play();
             }
         }
@@ -458,10 +578,37 @@ namespace MegamanX.Components
             }
         }
 
+        private void OnAnimationEnd(SpriteAnimatorComponent source)
+        {
+            switch (State)
+            {
+                case PlayerState.Standing:
+                    animator.Play("idle");
+                    break;
+                case PlayerState.Walking:
+                    animator.Play("walk");
+                    break;
+                case PlayerState.Jumping:
+                    animator.Play("jump");
+                    break;
+                case PlayerState.Falling:
+                    animator.Play("fall");
+                    break;
+                case PlayerState.Dashing:
+                    animator.Play("dash");
+                    break;
+                case PlayerState.Wallsliding:
+                    animator.Play("wallslide");
+                    break;
+                case PlayerState.Walljumping:
+                    break;
+            }
+        }
+
         private bool CanStrafe => State is PlayerState.Walking or PlayerState.Jumping or PlayerState.Falling;
         private bool CanFall => State is PlayerState.Standing or PlayerState.Walking or PlayerState.Dashing;
         private bool CanJump => State is PlayerState.Standing or PlayerState.Walking or PlayerState.Dashing;
         private bool CanDash => State is PlayerState.Standing or PlayerState.Walking;
-        private bool CanWalljump => State is PlayerState.Wallsliding or PlayerState.Jumping && ((IsLeft && LeftWallSensor) || (!IsLeft && RightWallSensor));
+        private bool CanWalljump => (State == PlayerState.Wallsliding && ((!IsLeft && LeftWallSensor) || (IsLeft && RightWallSensor))) || (State == PlayerState.Jumping && ((IsLeft && LeftWallSensor) || (!IsLeft && RightWallSensor)));
     }
 }
